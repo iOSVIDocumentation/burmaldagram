@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title id="t-title">Вхід у Burmalda Messenger</title>
+    <style>
+        * { box-sizing: border-box; }
+        
+        body, html { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            padding: 0;
+            height: 100vh; 
+            overflow: hidden; 
+            background-color: #050510;
+            color: white; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+        }
+
+        /* --- ФОН: РІДКЕ СКЛО ТА АВРОРА --- */
+        .aurora-bg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #050505 100%);
+        }
+
+        .blob {
+            position: absolute;
+            width: 50vw;
+            height: 50vw;
+            min-width: 300px;
+            min-height: 300px;
+            background: linear-gradient(135deg, #00f2fe 0%, #7000ff 100%);
+            filter: blur(120px);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: move 20s infinite alternate ease-in-out;
+        }
+
+        .blob:nth-child(2) { background: linear-gradient(135deg, #ff0055 0%, #ffcc00 100%); animation-delay: -5s; animation-duration: 25s; }
+        .blob:nth-child(3) { background: linear-gradient(135deg, #00ff88 0%, #00f2fe 100%); animation-delay: -10s; animation-duration: 15s; }
+
+        @keyframes move {
+            0% { transform: translate(-10%, -10%) scale(1); }
+            50% { transform: translate(50%, 30%) scale(1.2); }
+            100% { transform: translate(-20%, 20%) scale(0.9); }
+        }
+
+        /* Ефект дрібних зірок */
+        .stars {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><circle cx="20" cy="20" r="1" fill="white" opacity="0.3"/><circle cx="150" cy="100" r="1.5" fill="white" opacity="0.5"/></svg>');
+            animation: twinkle 5s infinite;
+        }
+
+        @keyframes twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
+
+        /* --- ЛІТАЮЧІ КАРТИНКИ --- */
+        .floating-img {
+            position: absolute;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 1;
+            opacity: 0.8;
+            transition: all 0.5s ease;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.2));
+        }
+
+        .img-1 { width: 200px; top: 15%; left: 10%; animation: floatSpace 12s infinite alternate ease-in-out; }
+        .img-2 { width: 250px; bottom: 15%; right: 10%; animation: floatSpace2 14s infinite alternate-reverse ease-in-out; }
+
+        @keyframes floatSpace { 0% { transform: translateY(0px) rotate(-5deg); } 100% { transform: translateY(-30px) rotate(5deg); } }
+        @keyframes floatSpace2 { 0% { transform: translateY(0px) rotate(5deg); } 100% { transform: translateY(-40px) rotate(-5deg); } }
+
+        /* --- КОНТЕЙНЕР LIQUID GLASS --- */
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            padding: 0 15px;
+        }
+
+        .box { 
+            background: rgba(255, 255, 255, 0.03); 
+            padding: 50px 30px 30px; 
+            border-radius: 24px; 
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            text-align: center; 
+            display: flex; 
+            flex-direction: column; 
+            width: 100%;
+            max-width: 360px;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        /* --- АНІМАЦІЯ СВИНА --- */
+        .pig-boss {
+            position: absolute;
+            width: 120px; top: -65px; left: 50%; margin-left: -60px;
+            z-index: 15; border-radius: 50%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+            animation: pigFlyIn 2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            transform: translateZ(50px);
+        }
+
+        @keyframes pigFlyIn {
+            0% { transform: translate(-300px, -400px) rotate(-70deg) scale(0.2) translateZ(50px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translate(0, 0) rotate(0deg) scale(1) translateZ(50px); opacity: 1; }
+        }
+
+        /* Виштовхуємо елементи вперед для 3D ефекту */
+        .box h2, .box input, .box button, .box .hint { transform: translateZ(30px); }
+        
+        h2 { 
+            margin-top: 10px; margin-bottom: 25px; 
+            color: #fff; font-size: 26px; font-weight: 800;
+            text-shadow: 0 2px 10px rgba(255,255,255,0.2); letter-spacing: 1px;
+        }
+        
+        input { 
+            width: 100%; padding: 15px; 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            color: white; border-radius: 12px; 
+            margin-bottom: 5px; font-size: 16px; 
+            outline: none; transition: all 0.3s ease;
+        }
+        input::placeholder { color: rgba(255, 255, 255, 0.5); }
+        input:focus { 
+            border-color: #00f2fe; background: rgba(0, 242, 254, 0.1);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); transform: translateZ(40px);
+        }
+        
+        .hint { font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-top: 2px; margin-bottom: 15px; text-align: left; padding-left: 8px; }
+        
+        button { 
+            width: 100%; padding: 15px 20px; 
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white; border: none; border-radius: 12px; 
+            cursor: pointer; font-size: 16px; font-weight: 800; 
+            text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(0, 242, 254, 0.4);
+            transition: all 0.3s ease; margin-top: 10px;
+        }
+        button:hover { 
+            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.6);
+            transform: translateZ(50px) scale(1.02);
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+        }
+        
+        .error-msg { 
+            font-size: 13px; margin-bottom: 12px; display: none; font-weight: bold; 
+            padding: 10px; border-radius: 8px;
+            transform: translateZ(30px);
+        }
+
+        /* --- ВИБІР МОВИ (LIQUID GLASS) --- */
+        .lang-switch {
+            position: absolute;
+            bottom: 55px;
+            display: flex;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 5px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            z-index: 20;
+        }
+        
+        .lang-btn {
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 6px 12px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
+        
+        .lang-btn.active {
+            background: rgba(0, 242, 254, 0.15);
+            color: #00f2fe;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+        }
+
+        /* --- НИЖНІЙ НАПИС --- */
+        .bottom-text {
+            position: absolute; bottom: 20px; left: 0; width: 100%; text-align: center; font-size: 12px;
+            color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 3px;
+            z-index: 20; pointer-events: none; text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            transition: opacity 0.5s ease;
+        }
+
+        /* Адаптація під мобільні екрани */
+        @media (max-width: 768px) {
+            .img-1 { width: 120px; top: 10%; left: 5%; }
+            .img-2 { width: 150px; bottom: 10%; right: 5%; }
+            .box { padding: 45px 20px 25px; }
+            h2 { font-size: 22px; }
+            .pig-boss { width: 100px; top: -55px; margin-left: -50px; }
+            .blob { filter: blur(80px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="aurora-bg">
+        <div class="stars"></div>
+        <div class="blob"></div>
+        <div class="blob"></div>
+        <div class="blob"></div>
+    </div>
+
+    <img src="photo_2026-06-16_00-59-53.jpg" class="floating-img img-1" alt="Space Guy 1">
+    <img src="photo_2026-06-16_00-59-56.jpg" class="floating-img img-2" alt="Space Guy 2">
+
+    <div class="container">
+        <div class="box" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2">
+            
+            <img src="photo_2026-06-16_00-59-57.jpg" class="pig-boss" alt="Pig Boss">
+
+            <h2 id="t-heading">Вхід Burmalda</h2>
+            
+            <input type="text" id="username" placeholder="Юзернейм..." autocomplete="off" maxlength="12">
+            <div class="hint" id="t-hint">Максимум 12 символів (змінити юзернейм неможливо!)</div>
+            
+            <input type="password" id="password" placeholder="Пароль...">
+            
+            <div id="error" class="error-msg"></div>
+            
+            <button id="login-btn" onclick="enterChat()">Увійти / Створити</button>
+        </div>
+    </div>
+
+    <div class="lang-switch">
+        <div class="lang-btn active" onclick="setLang('uk')" id="btn-uk">UK</div>
+        <div class="lang-btn" onclick="setLang('ru')" id="btn-ru">RU</div>
+        <div class="lang-btn" onclick="setLang('en')" id="btn-en">EN</div>
+    </div>
+
+    <div class="bottom-text" id="dynamic-phrase">остап пушка дєвки ловушка</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+
+    <script>
+        // --- СЛОВНИК ПЕРЕКЛАДІВ ---
+        const i18n = {
+            uk: {
+                title: "Вхід у Burmalda Messenger",
+                heading: "Вхід Burmalda",
+                userPlaceholder: "Юзернейм...",
+                userHint: "Максимум 12 символів",
+                passPlaceholder: "Пароль...",
+                btnText: "Увійти / Створити",
+                loading: "Завантаження...",
+                checking: "Перевірка...",
+                errEmpty: "Введіть нік та пароль!",
+                errAuth: "Помилка авторизації!",
+                errNet: "Помилка мережі!"
+            },
+            ru: {
+                title: "Вход в Burmalda Messenger",
+                heading: "Вход Burmalda",
+                userPlaceholder: "Юзернейм...",
+                userHint: "Максимум 12 символов (юзернейм нельзя поменять!)",
+                passPlaceholder: "Пароль...",
+                btnText: "Войти / Создать",
+                loading: "Загрузка...",
+                checking: "Проверка...",
+                errEmpty: "Введите ник и пароль!",
+                errAuth: "Ошибка авторизации!",
+                errNet: "Ошибка сети!"
+            },
+            en: {
+                title: "Burmalda Messenger Login",
+                heading: "Burmalda Login",
+                userPlaceholder: "Username...",
+                userHint: "Maximum 12 characters (the username cannot be changed!)",
+                passPlaceholder: "Password...",
+                btnText: "Login / Create",
+                loading: "Loading...",
+                checking: "Checking...",
+                errEmpty: "Enter nickname and password!",
+                errAuth: "Authorization error!",
+                errNet: "Network error!"
+            }
+        };
+
+        let currentLang = 'uk'; // Мова за замовчуванням
+
+        // Ініціалізація мови при завантаженні
+        function initLanguage() {
+            const savedLang = localStorage.getItem('burmalda_lang');
+            const userLang = navigator.language || navigator.userLanguage; // Беремо мову регіону/браузера
+
+            if (savedLang && i18n[savedLang]) {
+                currentLang = savedLang;
+            } else if (userLang.toLowerCase().includes('en')) {
+                currentLang = 'en';
+            } else if (userLang.toLowerCase().includes('ru')) {
+                currentLang = 'ru';
+            } else {
+                currentLang = 'uk'; // За замовчуванням ставимо українську
+            }
+            
+            setLang(currentLang);
+        }
+
+        // Функція перемикання мови
+        function setLang(lang) {
+            currentLang = lang;
+            localStorage.setItem('burmalda_lang', lang);
+
+            // Оновлюємо UI перемикача (скидаємо всі активні класи)
+            document.getElementById('btn-uk').classList.remove('active');
+            document.getElementById('btn-ru').classList.remove('active');
+            document.getElementById('btn-en').classList.remove('active');
+            
+            // Активуємо обрану кнопку
+            document.getElementById(`btn-${lang}`).classList.add('active');
+
+            // Оновлюємо тексти на сторінці
+            document.getElementById('t-title').innerText = i18n[lang].title;
+            document.getElementById('t-heading').innerText = i18n[lang].heading;
+            document.getElementById('username').placeholder = i18n[lang].userPlaceholder;
+            document.getElementById('t-hint').innerText = i18n[lang].userHint;
+            document.getElementById('password').placeholder = i18n[lang].passPlaceholder;
+            document.getElementById('login-btn').innerText = i18n[lang].btnText;
+
+            // Ховаємо помилки, якщо користувач змінив мову
+            document.getElementById('error').style.display = 'none';
+        }
+
+        // Виклик ініціалізації при завантаженні сторінки
+        window.addEventListener('DOMContentLoaded', initLanguage);
+
+
+        // --- ЛОГІКА РАНДОМНИХ ФРАЗ ---
+        const phrases = [
+            "остап пушка дєвки ловушка",
+            "влад пушка дєвки ловушка",
+            "назар пушка дєвки ловушка"
+        ];
+        
+        const phraseElement = document.getElementById('dynamic-phrase');
+        
+        setInterval(() => {
+            phraseElement.style.opacity = '0';
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * phrases.length);
+                phraseElement.innerText = phrases[randomIndex];
+                phraseElement.style.opacity = '1';
+            }, 500); 
+        }, 5000); 
+
+        // --- ЛОГІКА АВТОРИЗАЦІЇ ---
+        function enterChat() {
+            const nick = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const errorDiv = document.getElementById('error');
+            const btn = document.getElementById('login-btn');
+
+            errorDiv.style.display = 'none';
+
+            if (!nick || !pass) {
+                showError(i18n[currentLang].errEmpty);
+                return;
+            }
+
+            const url = 'https://script.google.com/macros/s/AKfycbw5-YIlQPbTq8fI46zqdBBBUq_b5KjAQ7PY0CPCRN0tG_PLkJx4hpwhe_6iiqdWx7Gj0g/exec';
+
+            const originalBtnText = btn.innerText;
+            btn.innerText = i18n[currentLang].loading;
+            btn.style.opacity = "0.8";
+            btn.disabled = true;
+
+            errorDiv.innerText = i18n[currentLang].checking;
+            errorDiv.style.color = "#00f2fe";
+            errorDiv.style.background = "transparent";
+            errorDiv.style.border = "none";
+            errorDiv.style.display = 'block';
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' }, 
+                body: JSON.stringify({ action: "login", username: nick, password: pass })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    
+                    // --- СИСТЕМА ІЗОЛЯЦІЇ АКАУНТІВ ---
+                    
+                    // 1. Очищаємо сесію та глобальні ключі попереднього користувача
+                    localStorage.removeItem('chat_logged_in');
+                    localStorage.removeItem('burmalda_my_nick');
+                    localStorage.removeItem('current_active_chat'); // Видаляє відкритий чат
+                    localStorage.removeItem('current_messages');    // Видаляє кеш повідомлень на екрані
+                    sessionStorage.clear(); // Про всяк випадок чистимо сесію браузера
+                    
+                    // 2. Встановлюємо дані для нового входу
+                    localStorage.setItem('chat_logged_in', 'true');
+                    localStorage.setItem('burmalda_my_nick', nick);
+
+                    // 3. Зберігаємо контакти з жорсткою прив'язкою до КОНКРЕТНОГО нікнейму
+                    const loadedContacts = data.contacts ? data.contacts.split(',') : [];
+                    localStorage.setItem(`chat_list_${nick}`, JSON.stringify(loadedContacts));
+
+                    // Перехід у чат
+                    const loginToken = btoa(encodeURIComponent(nick) + "_" + Date.now());
+                    window.location.href = '/chat?auth=' + loginToken; 
+                } else {
+                    showError(data.message || i18n[currentLang].errAuth);
+                    resetButton(btn, originalBtnText);
+                }
+            })
+            .catch(err => {
+                showError(i18n[currentLang].errNet);
+                console.error(err);
+                resetButton(btn, originalBtnText);
+            });
+            
+            function showError(msg) {
+                errorDiv.innerText = msg;
+                errorDiv.style.color = "#ff4a4a";
+                errorDiv.style.background = "rgba(255, 74, 74, 0.1)";
+                errorDiv.style.border = "1px solid rgba(255, 74, 74, 0.3)";
+                errorDiv.style.display = 'block';
+            }
+            
+            function resetButton(button, text) {
+                button.innerText = text;
+                button.style.opacity = "1";
+                button.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
