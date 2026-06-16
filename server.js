@@ -1,115 +1,87 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+const fs = require('fs'); // Модуль для работы с файлами
+
 const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
-const fs = require('fs');
+const server = http.createServer(app);
+const io = new Server(server);
 
-// Твоя рабочая ссылка на Google Apps Script
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxM2xRV-07GZmQvcConc-4nZIjO3-xpVHAA3XKOnL1qJlR5_Vpye8ySu2KfPTIOUW0/exec';
+const PORT = process.env.PORT || 3000;
+const DB_FILE = path.join(__dirname, 'database.json');
 
-// Автоматически определяем правильный путь к файлам
-function getFilePath(fileName) {
-    if (fs.existsSync(__dirname + '/public/' + fileName)) {
-        return __dirname + '/public/' + fileName;
+let userProfiles = {};
+let messagesDatabase = {}; 
+let activeConnections = {}; // Хранилище пар socket.id -> username для точного онлайна
+
+// Функция для безопасной загрузки базы данных из файла при старте сервера
+function loadDatabase() {
+    try {
+        if (fs.existsSync(DB_FILE)) {
+            const rawData = fs.readFileSync(DB_FILE, 'utf8');
+            const parsed = JSON.parse(rawData);
+            messagesDatabase = parsed.messagesDatabase || {};
+            userProfiles = parsed.userProfiles || {};
+            console.log('--- База данных BurmaldaGram успешно загружена из файла ---');
+        } else {
+            console.log('--- Файл базы данных не найден. Создана новая чистая БД ---');
+        }
+    } catch (e) {
+        console.error('Ошибка при чтении базы данных с диска:', e);
     }
-    return __dirname + '/' + fileName;
 }
 
-app.use(express.static(__dirname + '/public'));
+// Функция для сохранения сообщений и профилей на диск
+function saveDatabase() {
+    try {
+        const dataToSave = {
+            messagesDatabase,
+            userProfiles
+        };
+        fs.writeFileSync(DB_FILE, JSON.stringify(dataToSave, null, 2), 'utf8');
+    } catch (e) {
+        console.error('Ошибка при записи базы данных на диск:', e);
+    }
+}
+
+// Загружаем данные перед запуском сокетов
+loadDatabase();
+
 app.use(express.static(__dirname));
 
-let onlineUsers = {};
+app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
+app.get('/chat', (req, res) => { res.sendFile(path.join(__dirname, 'chat.html')); });
 
-// Главная страница (Форма входа)
-app.get('/', (req, res) => {
-    res.sendFile(getFilePath('index.html'));
-});
-
-// Страница чата (Мессенджер)
-app.get('/chat', (req, res) => {
-    res.sendFile(getFilePath('chat.html'));
-});
-
-// Функция для отправки POST-запросов в твой Google Apps Script
-async function callGoogleScript(payload) {
-    try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Ошибка сети: ${response.status}`);
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error('[Google API Error]:', error.message);
-        return { status: "error", message: "Ошибка связи с базой данных Google." };
-    }
+// Функция для генерации чистого списка уникальных юзеров в сети
+function getOnlineUsersList() {
+    return Array.from(new Set(Object.values(activeConnections)));
 }
 
-// Работа с сокетами
 io.on('connection', (socket) => {
-    
-    // Принимаем username и password от клиента при авторизации
-    socket.on('store user', async (username, password) => {
+    console.log(`Новое подключение к BurmaldaGram (ID сокета: ${socket.id})`);
+
+    socket.on('store user', (username) => {
         if (!username) return;
-
-        console.log(`[Auth Attempt] Пользователь ${username} пытается войти...`);
-
-        // Отправляем данные в твой скрипт Google Таблиц
-        const dbResult = await callGoogleScript({
-            action: "login",
-            username: username,
-            password: password || "" // Передаем пароль, если он есть
-        });
-
-        // Если скрипт вернул ошибку (например, неверный пароль)
-        if (dbResult.status === "error") {
-            socket.emit('auth_result', { success: false, message: dbResult.message });
-            return;
-        }
-
-        // Если всё ок (вход успешный или регистрация прошла)
         socket.username = username;
-        onlineUsers[username] = socket.id;
         
-        // Отвечаем клиенту, что вход одобрен, и передаем его контакты из столбца D
-        socket.emit('auth_result', { 
-            success: true, 
-            message: dbResult.message,
-            contacts: dbResult.contacts || "" 
-        });
+        // Привязываем username к конкретному ID подключения
+        activeConnections[socket.id] = username;
+        
+        // Отправляем точный список онлайн-пользователей
+        io.emit('online users', getOnlineUsersList());
 
-        // Оповещаем всех, что юзер зашел в сеть
-        io.emit('online users', Object.keys(onlineUsers));
-        console.log(`[Burmalda] Пользователь ${username} успешно авторизован и онлайн.`);
-    });
-
-    // Поиск пользователя в таблице при добавлении контакта
-    socket.on('search_target_user', async (targetUser) => {
-        if (!targetUser) return;
-        
-        const dbResult = await callGoogleScript({
-            action: "check_user",
-            targetUser: targetUser
-        });
-        
-        socket.emit('search_result', dbResult);
-    });
-
-    // Синхронизация контактов (сохранение строки контактов в столбец D)
-    socket.on('sync_user_contacts', async (data) => {
-        if (!data || !data.currentUser) return;
-        
-        await callGoogleScript({
-            action: "save_contacts",
-            currentUser: data.currentUser,
-            contacts: data.contacts || ""
-        });
-        console.log(`[Burmalda] Контакты для ${data.currentUser} сохранены в таблицу.`);
+        // Собираем список диалогов пользователя из сохраненной базы данных
+        let userDialogs = [];
+        for (let roomName in messagesDatabase) {
+            if (roomName.split('_').includes(username)) {
+                const partner = roomName.replace(username, '').replace('_', '');
+                if (partner && !userDialogs.includes(partner)) {
+                    userDialogs.push(partner);
+                }
+            }
+        }
+        socket.emit('server dialogs list', userDialogs);
     });
 
     socket.on('join room', (partnerName) => {
@@ -117,31 +89,101 @@ io.on('connection', (socket) => {
         const roomName = [socket.username, partnerName].sort().join('_');
         socket.join(roomName);
 
-        const partnerSocketId = onlineUsers[partnerName];
-        if (partnerSocketId) {
-            io.to(partnerSocketId).emit('force join room', roomName);
+        if (messagesDatabase[roomName]) {
+            socket.emit('server history', messagesDatabase[roomName]);
+        } else {
+            socket.emit('server history', []);
         }
     });
 
     socket.on('private chat message', (data) => {
-        if (!socket.username || !data.room || !data.text) return;
-        const messageData = {
-            room: data.room,
-            user: socket.username,
-            text: data.text
+        if (!data) return;
+        const room = data.room;
+        const text = data.text;
+        const user = data.user || socket.username; 
+        const msgId = data.msgId || ('msg-' + Date.now());
+        const isRead = data.isRead || false;
+
+        if (!room || !text) return;
+
+        const packetToSend = { 
+            room, 
+            text, 
+            user, 
+            msgId, 
+            isRead, 
+            time: data.time || Date.now(),
+            reactions: data.reactions || {}
         };
-        io.to(data.room).emit('chat message', messageData);
+
+        if (text !== '[TYPING_SIGNAL]' && text !== '[READ_SIGNAL]') {
+            if (!messagesDatabase[room]) messagesDatabase[room] = [];
+            
+            if (!messagesDatabase[room].some(m => m.msgId === msgId)) {
+                messagesDatabase[room].push(packetToSend);
+                // Сохраняем изменения на жесткий диск сервера
+                saveDatabase();
+            }
+            socket.to(room).emit('force join room', room);
+        }
+
+        io.to(room).emit('chat message', packetToSend);
+    });
+
+    socket.on('message_reaction', (data) => {
+        if (!data || !data.room || !data.msgId) return;
+        const { room, msgId, reaction, username } = data;
+
+        if (messagesDatabase[room]) {
+            const msg = messagesDatabase[room].find(m => m.msgId === msgId);
+            if (msg) {
+                if (!msg.reactions) msg.reactions = {};
+
+                // Удаляем прошлую реакцию юзера
+                Object.keys(msg.reactions).forEach(emoji => {
+                    if (Array.isArray(msg.reactions[emoji])) {
+                        msg.reactions[emoji] = msg.reactions[emoji].filter(u => u !== username);
+                        if (msg.reactions[emoji].length === 0) delete msg.reactions[emoji];
+                    }
+                });
+
+                // Если пришел новый эмодзи — ставим его
+                if (reaction) {
+                    if (!msg.reactions[reaction]) msg.reactions[reaction] = [];
+                    msg.reactions[reaction].push(username);
+                }
+
+                // Сохраняем обновленные реакции в файл
+                saveDatabase();
+
+                // Обновляем данные у всех клиентов в комнате
+                io.to(room).emit('update_message_data', { room, msgId, reactions: msg.reactions });
+            }
+        }
+    });
+
+    socket.on('request profiles', () => { 
+        socket.emit('all profiles data', userProfiles); 
+    });
+
+    socket.on('update profile', (packet) => {
+        if (packet && packet.user && packet.data) {
+            userProfiles[packet.user] = packet.data;
+            // Сохраняем аватарки и био на диск, чтобы не слетали
+            saveDatabase();
+            socket.broadcast.emit('broadcast profile update', packet);
+        }
     });
 
     socket.on('disconnect', () => {
-        if (socket.username) {
-            delete onlineUsers[socket.username];
-            io.emit('online users', Object.keys(onlineUsers));
+        console.log(`Пользователь отключился (ID сокета: ${socket.id})`);
+        // Удаляем конкретное соединение из списка активных
+        if (socket.id in activeConnections) {
+            delete activeConnections[socket.id];
         }
+        // Рассылаем обновленный и чистый онлайн-список оставшимся
+        io.emit('online users', getOnlineUsersList());
     });
 });
 
-const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => {
-    console.log(`Сервер Burmalda ожил на порту ${PORT}`);
-});
+server.listen(PORT, () => { console.log(`BurmaldaGram запущен на порту ${PORT}`); });
