@@ -68,7 +68,8 @@
         .reaction-chip:hover { background: #2d2d2d; border-color: #555; }
         .reaction-chip.active-my { background: rgba(0, 123, 255, 0.15); border-color: #007bff; }
 
-        #form { padding: 15px; background: #1e1e1e; display: flex; border-top: 1px solid #2d2d2d; position: relative; z-index: 5; }
+        #form { padding: 15px; background: #1e1e1e; display: flex; flex-direction: column; border-top: 1px solid #2d2d2d; position: relative; z-index: 5; gap: 8px; }
+        .input-row { display: flex; width: 100%; }
         #input { flex-grow: 1; padding: 12px; background: #2d2d2d; border: 1px solid #444; color: white; border-radius: 5px; outline: none; font-size: 16px; }
         #button { padding: 12px 25px; margin-left: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px; flex-shrink: 0; }
         
@@ -79,6 +80,15 @@
         .context-menu button { background: none; border: none; color: #fff; width: 100%; text-align: left; padding: 10px 15px; font-size: 14px; cursor: pointer; outline: none; }
         .context-menu button:hover { background: #333; }
         .context-menu button.delete-btn { color: #dc3545; font-weight: bold; border-top: 1px solid #333; }
+
+        /* Панель ответа / редактирования над полем ввода */
+        .action-preview-bar { display: none; background: #252525; border-left: 3px solid #007bff; padding: 6px 10px; border-radius: 4px; justify-content: space-between; align-items: center; font-size: 14px; }
+        .action-preview-bar .preview-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #aaa; max-width: 85%; }
+        .action-preview-bar .close-preview { background: none; border: none; color: #888; font-size: 16px; cursor: pointer; }
+
+        /* Отображение цитаты в сообщении */
+        .reply-box { background: rgba(0, 0, 0, 0.2); border-left: 3px solid #28a745; padding: 4px 8px; margin-bottom: 5px; border-radius: 4px; font-size: 13px; color: #bbb; }
+        .my-msg .reply-box { border-left-color: #fff; color: #e0e0e0; }
 
         /* Модальные окна */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
@@ -145,10 +155,18 @@
             </div>
             <div id="chat-typing-status" class="typing-indicator"></div>
         </div>
+        
         <ul id="messages"></ul>
+        
         <div id="form">
-            <input id="input" autocomplete="off" />
-            <button id="button">Отправить</button>
+            <div class="action-preview-bar" id="action-preview">
+                <span class="preview-text" id="preview-text-content"></span>
+                <button class="close-preview" onclick="cancelInputAction()">&times;</button>
+            </div>
+            <div class="input-row">
+                <input id="input" autocomplete="off" />
+                <button id="button">Отправить</button>
+            </div>
         </div>
     </div>
 </div>
@@ -233,14 +251,19 @@
             typingText: "печатает...",
             uploadBtn: "📁 Загрузить фото",
             bioPlaceholder: "О себе / Описание:",
-            bioEmpty: "Ничего не указано"
+            bioEmpty: "Ничего не указано",
+            ctxReply: "Ответить ↩️",
+            ctxEdit: "Редактировать ✏️",
+            ctxDeleteMsg: "Удалить для всех 🗑",
+            replyingTo: "Ответ на сообщение:",
+            editingMsg: "Редактирование:"
         },
         uk: {
             searchPlaceholder: "Введіть ім'я та натисніть Enter...",
             dialogsTitle: "Ваші діалоги",
             placeholderText: "BurmaldaGram<br><span style='font-size: 14px; color: #444;'>Оберіть чат або натисніть 🔍, щоб додати друга</span>",
             backBtn: "⬅ Назад",
-            inputPlaceholder: "Напишіть повідомлення...",
+            inputPlaceholder: "Напішіть повідомлення...",
             btnSend: "Надіслати",
             settingsTitle: "⚙️ Налаштування профілю",
             profileTitle: "👤 Профіль користувача",
@@ -259,7 +282,12 @@
             typingText: "пише...",
             uploadBtn: "📁 Завантажити фото",
             bioPlaceholder: "Про себе / Опис:",
-            bioEmpty: "Нічого не вказано"
+            bioEmpty: "Нічого не вказано",
+            ctxReply: "Відповісти ↩️",
+            ctxEdit: "Редагувати ✏️",
+            ctxDeleteMsg: "Видалити для всіх 🗑",
+            replyingTo: "Відповідь на повідомлення:",
+            editingMsg: "Редагування:"
         },
         en: {
             searchPlaceholder: "Type name and press Enter...",
@@ -285,7 +313,12 @@
             typingText: "is typing...",
             uploadBtn: "📁 Upload Photo",
             bioPlaceholder: "About me / Description:",
-            bioEmpty: "Nothing specified"
+            bioEmpty: "Nothing specified",
+            ctxReply: "Reply ↩️",
+            ctxEdit: "Edit ✏️",
+            ctxDeleteMsg: "Delete for everyone 🗑",
+            replyingTo: "Reply to message:",
+            editingMsg: "Editing:"
         }
     };
 
@@ -295,6 +328,10 @@
     let myNick = 'Аноним'; 
     let authorized = false;
     let sessionTimeString = 'Неизвестно';
+
+    // Состояния ввода
+    let replyMessageId = null;
+    let editMessageId = null;
 
     if (authToken) {
         try {
@@ -310,7 +347,8 @@
     }
 
     if (!authorized) {
-        alert('Доступ заблокирован!'); window.location.href = '/'; 
+        alert('Доступ заблокирован!');
+        window.location.href = '/'; 
     } else {
         document.getElementById('main-body').style.display = 'flex';
     }
@@ -319,7 +357,6 @@
     let currentRoom = null;
     let currentActiveChatPartner = null;
     let onlineUsers = [];
-
     let savedMessages = {};
     try {
         const rawHistory = localStorage.getItem('burmalda_msg_history');
@@ -344,17 +381,18 @@
     const input = document.getElementById('input');
     const button = document.getElementById('button');
     const contextMenu = document.getElementById('global-context-menu');
-
     const settingsToggleBtn = document.getElementById('settings-toggle-btn');
     const settingsModal = document.getElementById('settings-modal');
     const settingsCloseBtn = document.getElementById('settings-close-btn');
+    const actionPreview = document.getElementById('action-preview');
+    const previewTextContent = document.getElementById('preview-text-content');
 
     settingsToggleBtn.onclick = () => { openMyProfile(); };
     settingsCloseBtn.onclick = () => { settingsModal.classList.remove('active'); };
 
     document.getElementById('btn-back').onclick = () => {
         if (document.body.classList.contains('chat-opened')) {
-            window.history.back(); 
+            window.history.back();
         }
     };
 
@@ -368,6 +406,7 @@
             const cleanUrl = window.location.pathname + '?auth=' + urlParams.get('auth');
             window.history.replaceState({}, "", cleanUrl);
             renderChatsList();
+            cancelInputAction();
         }
     };
 
@@ -386,7 +425,6 @@
         return `<div class="${placeholderClass}">${firstLetter}</div>`;
     }
 
-    // --- ФУНКЦИЯ ДИНАМИЧЕСКОГО ПЕРЕВОДА ВСЕХ ТЕКСТОВ ---
     function applyLanguage() {
         const t = translations[currentLang];
         document.getElementById('lang-select').value = currentLang;
@@ -398,7 +436,6 @@
         input.placeholder = t.inputPlaceholder;
         button.textContent = t.btnSend;
 
-        // Переводим надписи полей внутри модалки в реальном времени
         document.getElementById('lbl-profile-name').textContent = t.profileName;
         document.getElementById('lbl-profile').textContent = t.profile;
         document.getElementById('lbl-status').textContent = t.status;
@@ -407,7 +444,6 @@
         document.getElementById('btn-logout').textContent = t.logoutBtn;
         document.getElementById('lbl-upload-btn').textContent = t.uploadBtn;
 
-        // Корректируем заголовки открытого окна, чтобы язык не зависал
         if (settingsModal.classList.contains('active')) {
             const openedNick = document.getElementById('info-nick').textContent;
             const isMe = (openedNick === myNick);
@@ -424,14 +460,11 @@
         loadMessagesHistory();
     }
 
-    // --- ОТКРЫТИЕ ЛИЧНОГО ПРОФИЛЯ ---
     function openMyProfile() {
         const t = translations[currentLang];
         document.getElementById('info-nick').textContent = myNick; 
         
         const myData = localProfiles[myNick] || { avatar: '', bio: '', displayName: '' };
-        
-        // Разрешаем редактирование
         document.getElementById('profile-display-name').disabled = false;
         document.getElementById('profile-display-name').value = myData.displayName || myNick;
         document.getElementById('profile-desc').disabled = false;
@@ -440,50 +473,41 @@
 
         document.getElementById('modal-avatar-view').innerHTML = getAvatarHTML(myNick, 'modal-avatar');
         document.getElementById('info-login-time').textContent = sessionTimeString;
-
-        // ВКЛЮЧАЕМ отображение элементов управления владельца
         document.getElementById('lbl-upload-btn').style.display = 'block';
         document.getElementById('btn-logout').style.display = 'block';
         document.getElementById('lang-select-block').style.display = 'block';
         document.getElementById('login-time-block').style.display = 'block';
 
-        // Запуск языковой сверки заголовков
         applyLanguage();
         settingsModal.classList.add('active');
     }
 
-    // --- ОТКРЫТИЕ ЧУЖОГО ПРОФИЛЯ (НАПРИМЕР DUROV) ---
     function openPartnerProfile() {
         if (!currentActiveChatPartner) return;
         const t = translations[currentLang];
         document.getElementById('info-nick').textContent = currentActiveChatPartner; 
 
         const partnerData = localProfiles[currentActiveChatPartner] || { avatar: '', bio: '', displayName: '' };
-        
-        // ЖЕСТКАЯ БЛОКИРОВКА полей (Никаких изменений)
         document.getElementById('profile-display-name').disabled = true;
         document.getElementById('profile-display-name').value = partnerData.displayName || currentActiveChatPartner;
         
-        document.getElementById('profile-desc').disabled = true; // ПОЛЕ ОСТАЕТСЯ, но редактировать нельзя!
+        document.getElementById('profile-desc').disabled = true; 
         document.getElementById('profile-desc').value = partnerData.bio || '';
         document.getElementById('profile-desc').placeholder = t.bioEmpty;
-
         document.getElementById('modal-avatar-view').innerHTML = getAvatarHTML(currentActiveChatPartner, 'modal-avatar');
 
-        // СКРЫВАЕМ кнопки смены фото, логаута, смены языка и времени входа
         document.getElementById('lbl-upload-btn').style.display = 'none';
         document.getElementById('btn-logout').style.display = 'none';
         document.getElementById('lang-select-block').style.display = 'none';
         document.getElementById('login-time-block').style.display = 'none'; 
 
-        // Применяем переводы текстов
         applyLanguage();
         settingsModal.classList.add('active');
     }
 
     function changeLanguage(lang) {
         currentLang = lang; 
-        localStorage.setItem('burmalda_lang', lang); 
+        localStorage.setItem('burmalda_lang', lang);
         applyLanguage();
     }
 
@@ -504,7 +528,8 @@
     }
 
     function handleAvatarUpload(inputEl) {
-        const file = inputEl.files[0]; if (!file) return;
+        const file = inputEl.files[0];
+        if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
             if (!localProfiles[myNick]) localProfiles[myNick] = { avatar: '', bio: '', displayName: '' };
@@ -519,7 +544,7 @@
     }
 
     socket.emit('store user', myNick);
-    socket.emit('request profiles'); 
+    socket.emit('request profiles');
 
     socket.on('broadcast profile update', (packet) => {
         if (packet && packet.user && packet.data) {
@@ -541,7 +566,7 @@
     });
 
     socket.on('online users', (users) => { onlineUsers = Array.isArray(users) ? users : []; renderChatsList(); });
-
+    
     input.oninput = () => {
         if (currentRoom) socket.emit('private chat message', { room: currentRoom, text: '[TYPING_SIGNAL]', user: myNick });
     };
@@ -575,9 +600,38 @@
             return;
         }
 
+        // Обробка глобального видалення повідомлення в реальному часі
+        if (data.text === '[DELETE_SIGNAL]' && data.targetMsgId) {
+            if (savedMessages[roomKey]) {
+                savedMessages[roomKey] = savedMessages[roomKey].filter(m => m.msgId !== data.targetMsgId);
+                localStorage.setItem('burmalda_msg_history', JSON.stringify(savedMessages));
+            }
+            if (roomKey === currentRoom) {
+                const targetWrapper = document.getElementById('wrapper-' + data.targetMsgId);
+                if (targetWrapper) targetWrapper.remove();
+            }
+            return;
+        }
+
+        // Обробка глобального редагування повідомлення в реальному часі
+        if (data.text === '[EDIT_SIGNAL]' && data.targetMsgId) {
+            if (savedMessages[roomKey]) {
+                const localMsg = savedMessages[roomKey].find(m => m.msgId === data.targetMsgId);
+                if (localMsg) localMsg.text = data.newText;
+                localStorage.setItem('burmalda_msg_history', JSON.stringify(savedMessages));
+            }
+            if (roomKey === currentRoom) {
+                const targetLi = document.getElementById(data.targetMsgId);
+                if (targetLi) {
+                    const textNode = targetLi.querySelector('.msg-body-text');
+                    if (textNode) textNode.textContent = data.newText;
+                }
+            }
+            return;
+        }
+
         if (data.user === myNick) return;
         if (!savedMessages[roomKey]) savedMessages[roomKey] = [];
-        
         const isDuplicate = savedMessages[roomKey].some(m => m.msgId === data.msgId);
         if (!isDuplicate) {
             savedMessages[roomKey].push(data);
@@ -585,7 +639,7 @@
         }
 
         if (roomKey === currentRoom) {
-            setTimeout(sendReadSignal, 300); 
+            setTimeout(sendReadSignal, 300);
             typingStatusEl.style.display = 'none';
             displaySingleMessage(data);
         }
@@ -627,9 +681,11 @@
 
     searchInput.onkeypress = (e) => {
         if (e.key === 'Enter') {
-            const targetNick = searchInput.value.trim(); if (!targetNick) return;
+            const targetNick = searchInput.value.trim();
+            if (!targetNick) return;
             if (targetNick.toLowerCase() === myNick.toLowerCase()) {
-                alert(translations[currentLang].selfChatError); return;
+                alert(translations[currentLang].selfChatError);
+                return;
             }
             if (!activeChats.includes(targetNick)) { activeChats.push(targetNick); localStorage.setItem('burmalda_chat_list', JSON.stringify(activeChats)); }
             searchInput.value = ''; searchFrame.classList.remove('active'); openChatWith(targetNick);
@@ -637,9 +693,11 @@
     };
 
     function renderChatsList() {
-        chatsList.innerHTML = ''; const t = translations[currentLang];
+        chatsList.innerHTML = '';
+        const t = translations[currentLang];
         if (activeChats.length === 0) {
-            chatsList.innerHTML = `<div style="padding:15px;color:#555;text-align:center;">${t.emptyList}</div>`; return;
+            chatsList.innerHTML = `<div style="padding:15px;color:#555;text-align:center;">${t.emptyList}</div>`;
+            return;
         }
         activeChats.forEach(user => {
             if (!user) return;
@@ -658,10 +716,11 @@
 
     function openChatWith(user) {
         if (!user) return;
-        currentActiveChatPartner = user; currentRoom = [myNick, user].sort().join('_');
+        cancelInputAction();
+        currentActiveChatPartner = user;
+        currentRoom = [myNick, user].sort().join('_');
         chatPlaceholder.style.display = 'none'; chatArea.style.display = 'flex';
         chatTitleText.innerHTML = `${getAvatarHTML(user)} <span>${getVisibleName(user)}</span>`;
-        
         if (!document.body.classList.contains('chat-opened')) {
             const newUrl = window.location.pathname + window.location.search + '&chat=' + encodeURIComponent(user);
             window.history.pushState({ chatOpened: true, partner: user }, "", newUrl);
@@ -684,18 +743,44 @@
 
     function sendMessage() {
         const text = input.value.trim();
-        if (text && currentRoom) {
-            const generatedId = 'msg-' + Date.now() + Math.floor(Math.random() * 1000);
-            const msgPacket = {
-                room: currentRoom, text: text, user: myNick, msgId: generatedId, isRead: false, time: Date.now(), reactions: {}
-            };
-            if (!savedMessages[currentRoom]) savedMessages[currentRoom] = [];
-            savedMessages[currentRoom].push(msgPacket);
-            localStorage.setItem('burmalda_msg_history', JSON.stringify(savedMessages));
-            displaySingleMessage(msgPacket);
-            socket.emit('private chat message', msgPacket);
-            input.value = ''; input.focus();
+        if (!text || !currentRoom) return;
+
+        // Режим Редагування
+        if (editMessageId) {
+            if (savedMessages[currentRoom]) {
+                const target = savedMessages[currentRoom].find(m => m.msgId === editMessageId);
+                if (target) target.text = text;
+                localStorage.setItem('burmalda_msg_history', JSON.stringify(savedMessages));
+            }
+            const targetLi = document.getElementById(editMessageId);
+            if (targetLi) {
+                const textNode = targetLi.querySelector('.msg-body-text');
+                if (textNode) textNode.textContent = text;
+            }
+            socket.emit('private chat message', { room: currentRoom, text: '[EDIT_SIGNAL]', targetMsgId: editMessageId, newText: text, user: myNick });
+            cancelInputAction();
+            return;
         }
+
+        // Режим Нового Повідомлення / Відповіді
+        const generatedId = 'msg-' + Date.now() + Math.floor(Math.random() * 1000);
+        const msgPacket = {
+            room: currentRoom, 
+            text: text, 
+            user: myNick, 
+            msgId: generatedId, 
+            isRead: false, 
+            time: Date.now(), 
+            reactions: {},
+            replyToId: replyMessageId // Передаємо ID повідомлення, на яке відповідаємо
+        };
+
+        if (!savedMessages[currentRoom]) savedMessages[currentRoom] = [];
+        savedMessages[currentRoom].push(msgPacket);
+        localStorage.setItem('burmalda_msg_history', JSON.stringify(savedMessages));
+        displaySingleMessage(msgPacket);
+        socket.emit('private chat message', msgPacket);
+        cancelInputAction();
     }
 
     function sendReadSignal() { if (currentRoom) socket.emit('private chat message', { room: currentRoom, text: '[READ_SIGNAL]', user: myNick }); }
@@ -710,7 +795,8 @@
     }
 
     function renderReactions(msgId, reactions, holderElement) {
-        holderElement.innerHTML = ''; if (!reactions) return;
+        holderElement.innerHTML = '';
+        if (!reactions) return;
         Object.keys(reactions).forEach(emoji => {
             const voters = reactions[emoji];
             if (!Array.isArray(voters) || voters.length === 0) return;
@@ -770,45 +856,144 @@
 
         const item = document.createElement('li');
         item.id = data.msgId;
-        const timeHtml = `<span style="font-size: 10px; color: rgba(255,255,255,0.4); margin-left: 10px; float: right; margin-top: 5px;">${dateTimeString}</span>`;
-        
+
+        // Візуалізація цитати відповіді (якщо повідомлення містить replyToId)
+        if (data.replyToId && savedMessages[currentRoom]) {
+            const replyTarget = savedMessages[currentRoom].find(m => m.msgId === data.replyToId);
+            if (replyTarget) {
+                const replyBox = document.createElement('div');
+                replyBox.className = 'reply-box';
+                replyBox.textContent = `${getVisibleName(replyTarget.user)}: ${replyTarget.text}`;
+                item.appendChild(replyBox);
+            }
+        }
+
+        const bodySpan = document.createElement('span');
+        bodySpan.className = 'msg-body-text';
+        bodySpan.style.display = "inline-block";
+        bodySpan.style.verticalAlign = "middle";
+        bodySpan.textContent = data.text;
+        item.appendChild(bodySpan);
+
+        const timeHtml = document.createElement('span');
+        timeHtml.style.cssText = "font-size: 10px; color: rgba(255,255,255,0.4); margin-left: 10px; float: right; margin-top: 5px;";
+        timeHtml.textContent = dateTimeString;
+        item.appendChild(timeHtml);
+
         if (data.user === myNick) {
             item.classList.add('my-msg');
             const checkRead = data.isRead ? '✓✓' : '✓';
-            const readClass = data.isRead ? 'msg-status read' : 'msg-status';
-            item.innerHTML = `<span style="display: inline-block; vertical-align: middle;">${data.text}</span>${timeHtml}<span class="${readClass}">${checkRead}</span>`;
+            const statusSpan = document.createElement('span');
+            statusSpan.className = data.isRead ? 'msg-status read' : 'msg-status';
+            statusSpan.textContent = checkRead;
+            item.appendChild(statusSpan);
             item.style.paddingRight = "45px";
-        } else {
-            item.innerHTML = `<span style="display: inline-block; vertical-align: middle;">${data.text}</span>${timeHtml}`;
         }
 
+        // Обробка кліку: показ реакцій
         item.onclick = (e) => {
-            e.stopPropagation(); const currentDisplay = picker.style.display;
+            e.stopPropagation();
+            const currentDisplay = picker.style.display;
             document.querySelectorAll('.reaction-picker').forEach(p => p.style.display = 'none');
             picker.style.display = currentDisplay === 'flex' ? 'none' : 'flex';
+        };
+
+        // Обробка Правого Кліку (Контекстне меню повідомлення)
+        item.oncontextmenu = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showMessageContextMenu(e.clientX, e.clientY, data);
         };
 
         const reactionsHolder = document.createElement('div');
         reactionsHolder.id = 'reactions-holder-' + data.msgId;
         reactionsHolder.className = 'reactions-holder';
 
-        wrapper.appendChild(picker); wrapper.appendChild(item); wrapper.appendChild(reactionsHolder);
+        wrapper.appendChild(picker); 
+        wrapper.appendChild(item); 
+        wrapper.appendChild(reactionsHolder);
         messagesContainer.appendChild(wrapper);
         renderReactions(data.msgId, data.reactions, reactionsHolder);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
+    // Показує контекстне меню повідомлення (відповідь, редагування, видалення)
+    function showMessageContextMenu(x, y, msgData) {
+        const t = translations[currentLang];
+        contextMenu.style.left = `${x}px`; 
+        contextMenu.style.top = `${y}px`;
+        
+        let html = `<button onclick="initReply('${msgData.msgId}')">${t.ctxReply}</button>`;
+        if (msgData.user === myNick) {
+            html += `<button onclick="initEdit('${msgData.msgId}')">${t.ctxEdit}</button>`;
+            html += `<button onclick="executeDeleteMessage('${msgData.msgId}')" class="delete-btn">${t.ctxDeleteMsg}</button>`;
+        }
+        
+        contextMenu.innerHTML = html;
+        contextMenu.style.display = 'block';
+    }
+
+    // Ініціалізація ВІДПОВІДІ
+    window.initReply = function(msgId) {
+        if (!savedMessages[currentRoom]) return;
+        const msg = savedMessages[currentRoom].find(m => m.msgId === msgId);
+        if (!msg) return;
+        
+        cancelInputAction();
+        replyMessageId = msgId;
+        previewTextContent.textContent = `${translations[currentLang].replyingTo} "${msg.text}"`;
+        actionPreview.style.display = 'flex';
+        input.focus();
+    };
+
+    // Ініціалізація РЕДАГУВАННЯ
+    window.initEdit = function(msgId) {
+        if (!savedMessages[currentRoom]) return;
+        const msg = savedMessages[currentRoom].find(m => m.msgId === msgId);
+        if (!msg) return;
+        
+        cancelInputAction();
+        editMessageId = msgId;
+        input.value = msg.text;
+        previewTextContent.textContent = `${translations[currentLang].editingMsg} "${msg.text}"`;
+        actionPreview.style.display = 'flex';
+        input.focus();
+    };
+
+    // ГЛОБАЛЬНЕ ВИДАЛЕННЯ повідомлення у всіх
+    window.executeDeleteMessage = function(msgId) {
+        if (savedMessages[currentRoom]) {
+            savedMessages[currentRoom] = savedMessages[currentRoom].filter(m => m.msgId !== msgId);
+            localStorage.setItem('burmalda_msg_history', JSON.stringify(savedMessages));
+        }
+        const wrapper = document.getElementById('wrapper-' + msgId);
+        if (wrapper) wrapper.remove();
+        
+        // Відправляємо сигнал серверу та співрозмовнику
+        socket.emit('private chat message', { room: currentRoom, text: '[DELETE_SIGNAL]', targetMsgId: msgId, user: myNick });
+        if (replyMessageId === msgId || editMessageId === msgId) cancelInputAction();
+    };
+
+    // Скасування поточної дії
+    window.cancelInputAction = function() {
+        replyMessageId = null;
+        editMessageId = null;
+        input.value = '';
+        actionPreview.style.display = 'none';
+        previewTextContent.textContent = '';
+    };
+
     document.addEventListener('click', () => {
         document.querySelectorAll('.reaction-picker').forEach(p => p.style.display = 'none');
+        contextMenu.style.display = 'none';
     });
 
+    // Контекстне меню лівої панелі (видалення всього чату)
     function showChatContextMenu(x, y, partnerNick) {
         contextMenu.style.left = `${x}px`; contextMenu.style.top = `${y}px`;
         contextMenu.innerHTML = `<button onclick="window.executeDeleteChat('${partnerNick}')" class="delete-btn">${translations[currentLang].ctxDeleteChat}</button>`;
         contextMenu.style.display = 'block';
     }
-
-    document.addEventListener('click', () => { contextMenu.style.display = 'none'; });
 
     window.executeDeleteChat = function(partnerNick) {
         const generatedRoom = [myNick, partnerNick].sort().join('_');
@@ -817,7 +1002,8 @@
         activeChats = activeChats.filter(c => c !== partnerNick);
         localStorage.setItem('burmalda_chat_list', JSON.stringify(activeChats));
         if (generatedRoom === currentRoom) {
-            currentActiveChatPartner = null; currentRoom = null;
+            currentActiveChatPartner = null;
+            currentRoom = null;
             chatArea.style.display = 'none'; chatPlaceholder.style.display = 'block'; 
         }
         renderChatsList();
