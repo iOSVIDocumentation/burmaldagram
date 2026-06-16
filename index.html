@@ -1,52 +1,56 @@
 <!DOCTYPE html>
-<html lang="uk" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title id="t-title">Вхід у Burmalda Messenger</title>
+    <title id="t-title">Burmalda Messenger Login</title>
     <style>
-        /* Максимально прості та яскраві пастельні кольори */
-        :root {
-            --bg-color: #f0fdf4; /* Світло-зелений оптимістичний фон */
-            --box-bg: #ffffff;
-            --box-border: #bbf7d0;
-            --text-main: #166534;
-            --text-muted: #666666;
-            --input-bg: #f9fafb;
-            --input-border: #cbd5e1;
-            --btn-bg: #22c55e; /* Веселий зелений колір */
-            --btn-text: #ffffff;
-            --btn-hover: #16a34a;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #064e3b; /* Глибокий зелений для темної теми */
-            --box-bg: #022c22;
-            --box-border: #047857;
-            --text-main: #f0fdf4;
-            --text-muted: #a7f3d0;
-            --input-bg: #065f46;
-            --input-border: #047857;
-            --btn-bg: #10b981;
-            --btn-text: #022c22;
-            --btn-hover: #34d399;
-        }
-
         * { 
             box-sizing: border-box;
             margin: 0; 
             padding: 0;
-            font-family: sans-serif; /* Найбанальніший системний шрифт */
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body, html { 
             height: 100vh;
             overflow: hidden; 
-            background-color: var(--bg-color);
-            color: var(--text-main); 
+            /* Знаменитый серый льняной фон из iOS 5/6 */
+            background-color: #cbd2d8;
+            background-image: 
+                radial-gradient(rgba(255,255,255,0.15) 15%, transparent 16%),
+                radial-gradient(rgba(255,255,255,0.15) 15%, transparent 16%),
+                radial-gradient(rgba(0,0,0,0.1) 15%, transparent 16%),
+                radial-gradient(rgba(0,0,0,0.1) 15%, transparent 16%);
+            background-size: 8px 8px;
+            background-position: 0 0, 4px 4px, 0 1px, 4px 5px;
             display: flex; 
-            justify-content: center; 
+            flex-direction: column;
+            justify-content: flex-start; 
             align-items: center;
+        }
+
+        /* Нативный Navigation Bar сверху */
+        .nav-bar {
+            width: 100%;
+            height: 44px;
+            background: linear-gradient(to bottom, #7491b4 0%, #607fa6 50%, #4b6b94 51%, #4b6b94 100%);
+            border-bottom: 1px solid #2d3e52;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 3px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .nav-title {
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+            letter-spacing: -0.5px;
         }
 
         .container {
@@ -54,180 +58,203 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            padding: 0 20px;
+            flex: 1;
+            padding: 40px 15px;
+            overflow-y: auto;
         }
 
-        .box { 
-            background: var(--box-bg);
-            padding: 30px 20px; 
-            border-radius: 16px; 
-            border: 3px solid var(--box-border); /* Проста жирна рамка */
-            text-align: center; 
-            display: flex;
-            flex-direction: column; 
+        /* Стиль нативного блока со скругленными краями (как группы в настройках) */
+        .ios-group {
             width: 100%;
-            max-width: 340px;
-            box-shadow: 0 8px 0 var(--box-border); /* Банальний flat-дизайн */
+            max-width: 320px;
+            background: #ffffff;
+            border: 1px solid #ababab;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            overflow: hidden;
         }
 
-        .pig-boss {
-            width: 70px;
-            height: 70px;
-            margin: 0 auto 15px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--box-border);
+        .ios-row {
+            display: flex;
+            align-items: center;
+            padding: 11px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            position: relative;
         }
-        
-        h2 { 
-            margin-bottom: 20px;
-            color: var(--text-main); 
-            font-size: 22px; 
+
+        .ios-row:last-child {
+            border-bottom: none;
+        }
+
+        .ios-label {
+            width: 95px;
+            font-size: 15px;
             font-weight: bold;
+            color: #385487; /* Фирменный синий цвет подписей iOS 6 */
+            text-align: left;
         }
         
         input { 
-            width: 100%;
-            padding: 12px; 
-            background: var(--input-bg); 
-            border: 2px solid var(--input-border); 
-            color: var(--text-main); 
-            border-radius: 8px; 
-            margin-bottom: 6px;
-            font-size: 14px; 
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: #000000; 
+            font-size: 16px; 
             outline: none;
+            font-weight: normal;
         }
 
         input::placeholder { 
-            color: var(--text-muted);
-        }
-
-        input:focus { 
-            border-color: var(--btn-bg);
+            color: #bcbcbc;
         }
         
         .hint { 
-            font-size: 11px;
-            color: var(--text-muted); 
-            margin-top: 2px; 
-            margin-bottom: 15px; 
-            text-align: left; 
-            padding-left: 2px;
-            line-height: 1.3;
+            width: 100%;
+            max-width: 300px;
+            font-size: 13px;
+            color: #4c566c; /* Цвет подсказок под секциями в iOS */
+            text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+            margin-top: -5px; 
+            margin-bottom: 25px; 
+            text-align: center; 
+            line-height: 1.4;
         }
         
-        button { 
+        /* Объемная стеклянная кнопка iOS 6 */
+        .ios-btn { 
             width: 100%;
+            max-width: 320px;
             padding: 12px; 
-            background: var(--btn-bg);
-            color: var(--btn-text); 
-            border: none; 
+            background: linear-gradient(to bottom, #5ca0f9 0%, #468bf7 50%, #2671f5 51%, #1d61e1 100%);
+            border: 1px solid #1a4da6; 
             border-radius: 8px; 
+            color: #ffffff;
             cursor: pointer; 
-            font-size: 14px;
+            font-size: 17px;
             font-weight: bold; 
-            margin-top: 5px;
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0,0,0,0.3);
         }
 
-        button:hover { 
-            background: var(--btn-hover);
+        .ios-btn:active {
+            background: linear-gradient(to bottom, #1d61e1 0%, #2671f5 50%, #468bf7 100%);
         }
 
-        button:disabled {
-            opacity: 0.6;
+        .ios-btn:disabled {
+            opacity: 0.5;
             cursor: not-allowed;
         }
         
         .error-msg { 
-            font-size: 12px;
-            margin-bottom: 12px; 
+            width: 100%;
+            max-width: 320px;
+            font-size: 14px;
+            margin-bottom: 15px; 
             display: none; 
             font-weight: bold; 
             padding: 10px; 
             border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .bottom-controls {
-            position: absolute;
-            bottom: 20px;
+            width: 100%;
+            max-width: 320px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            margin-top: auto;
+            padding-bottom: 20px;
         }
 
         .control-row {
             display: flex;
-            gap: 6px;
-            background: var(--box-bg);
-            border: 2px solid var(--box-border);
-            padding: 4px;
-            border-radius: 20px;
+            background: linear-gradient(to bottom, #fafafa 0%, #ededed 100%);
+            border: 1px solid #a6a6a6;
+            padding: 2px;
+            border-radius: 6px;
+            box-shadow: inset 0 1px 0 #fff, 0 1px 1px rgba(0,0,0,0.1);
         }
         
         .ctrl-btn {
             cursor: pointer;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: bold;
-            color: var(--text-muted);
-            padding: 6px 12px;
-            border-radius: 15px;
-            text-transform: uppercase;
+            color: #555555;
+            padding: 5px 14px;
+            border-radius: 4px;
+            text-shadow: 0 1px 0 #fff;
         }
         
-        .ctrl-btn.active, .ctrl-btn:hover {
-            background: var(--btn-bg);
-            color: var(--btn-text);
-        }
-
-        .bottom-text {
-            font-size: 11px;
-            color: var(--text-main); 
-            font-weight: bold;
-            text-transform: uppercase; 
-            letter-spacing: 1px;
-            transition: opacity 0.3s ease;
-            text-align: center;
+        .ctrl-btn.active {
+            background: linear-gradient(to bottom, #7486a6 0%, #495e85 100%);
+            color: #ffffff;
+            text-shadow: 0 -1px 0 rgba(0,0,0,0.4);
+            border: 1px solid #354663;
+            margin: -1px;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="box">
-            <img src="photo_2026-06-16_00-59-57.jpg" class="pig-boss" alt="Pig Boss">
-            <h2 id="t-heading">Вхід Burmalda</h2>
-            
-            <input type="text" id="username" placeholder="Юзернейм..." autocomplete="off" maxlength="12">
-            <div class="hint" id="t-hint">Максимум 12 символів (змінити юзернейм неможливо!)</div>
-            
-            <input type="password" id="password" placeholder="Пароль...">
-            <div id="error" class="error-msg"></div>
-            
-            <button id="login-btn" onclick="enterChat()">Увійти / Створити</button>
-        </div>
+    <div class="nav-bar">
+        <div class="nav-title" id="t-heading">Burmalda Login</div>
     </div>
 
-    <div class="bottom-controls">
-        <div class="control-row">
-            <div class="ctrl-btn active" onclick="setLang('uk')" id="btn-uk">UK</div>
-            <div class="ctrl-btn" onclick="setLang('ru')" id="btn-ru">RU</div>
-            <div class="ctrl-btn" onclick="setLang('en')" id="btn-en">EN</div>
-        </div>
+    <div class="container">
+        
+        <div id="error" class="error-msg"></div>
 
-        <div class="control-row">
-            <div class="ctrl-btn" onclick="toggleTheme()" id="theme-toggle-btn">🌙 ТЕМНА</div>
+        <div class="ios-group">
+            <div class="ios-row">
+                <span class="ios-label" id="l-user">Login</span>
+                <input type="text" id="username" placeholder="Username..." autocomplete="off" maxlength="12">
+            </div>
+            <div class="ios-row">
+                <span class="ios-label" id="l-pass">Password</span>
+                <input type="password" id="password" placeholder="Password..." maxlength="24">
+            </div>
         </div>
+        
+        <div class="hint" id="t-hint">Maximum 12 characters (the username cannot be changed!)</div>
+        
+        <button id="login-btn" class="ios-btn" onclick="enterChat()">Login / Create</button>
 
-        <div class="bottom-text" id="dynamic-phrase">остап пушка дєвки ловушка</div>
+        <div class="bottom-controls">
+            <div class="control-row">
+                <div class="ctrl-btn" onclick="setLang('uk')" id="btn-uk">UK</div>
+                <div class="ctrl-btn" onclick="setLang('ru')" id="btn-ru">RU</div>
+                <div class="ctrl-btn active" onclick="setLang('en')" id="btn-en">EN</div>
+            </div>
+        </div>
     </div>
 
     <script>
         // --- СЛОВНИК ПЕРЕКЛАДІВ ---
-        const i18n = {
+        var i18n = {
+            en: {
+                title: "Burmalda Messenger Login",
+                heading: "Burmalda Login",
+                labelUser: "Login",
+                labelPass: "Password",
+                userPlaceholder: "Username...",
+                userHint: "Maximum 12 characters (the username cannot be changed!)",
+                passPlaceholder: "Password...",
+                btnText: "Login / Create",
+                loading: "Loading...",
+                checking: "Checking...",
+                errEmpty: "Enter nickname and password!",
+                errAuth: "Authorization error!",
+                errNet: "Network error!"
+            },
             uk: {
                 title: "Вхід у Burmalda Messenger",
                 heading: "Вхід Burmalda",
+                labelUser: "Логін",
+                labelPass: "Пароль",
                 userPlaceholder: "Юзернейм...",
                 userHint: "Максимум 12 символів (змінити юзернейм неможливо!)",
                 passPlaceholder: "Пароль...",
@@ -241,6 +268,8 @@
             ru: {
                 title: "Вход в Burmalda Messenger",
                 heading: "Вход Burmalda",
+                labelUser: "Логин",
+                labelPass: "Пароль",
                 userPlaceholder: "Юзернейм...",
                 userHint: "Максимум 12 символов (юзернейм нельзя поменять!)",
                 passPlaceholder: "Пароль...",
@@ -250,56 +279,37 @@
                 errEmpty: "Введите ник и пароль!",
                 errAuth: "Ошибка авторизации!",
                 errNet: "Ошибка сети!"
-            },
-            en: {
-                title: "Burmalda Messenger Login",
-                heading: "Burmalda Login",
-                userPlaceholder: "Username...",
-                userHint: "Maximum 12 characters (the username cannot be changed!)",
-                passPlaceholder: "Password...",
-                btnText: "Login / Create",
-                loading: "Loading...",
-                checking: "Checking...",
-                errEmpty: "Enter nickname and password!",
-                errAuth: "Authorization error!",
-                errNet: "Network error!"
             }
         };
 
-        let currentLang = 'uk';
+        var currentLang = 'en';
 
         function initPage() {
-            const savedLang = localStorage.getItem('burmalda_lang');
-            const userLang = navigator.language || navigator.userLanguage;
-
+            var savedLang = localStorage.getItem('burmalda_lang');
+            
+            // По умолчанию ставим английский, если язык не сохранен вручную
             if (savedLang && i18n[savedLang]) {
                 currentLang = savedLang;
-            } else if (userLang.toLowerCase().includes('en')) {
-                currentLang = 'en';
-            } else if (userLang.toLowerCase().includes('ru')) {
-                currentLang = 'ru';
             } else {
-                currentLang = 'uk';
+                currentLang = 'en';
             }
             setLang(currentLang);
-
-            const savedTheme = localStorage.getItem('burmalda_theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeButton(savedTheme);
         }
 
         function setLang(lang) {
             currentLang = lang;
             localStorage.setItem('burmalda_lang', lang);
 
-            document.getElementById('btn-uk').classList.remove('active');
-            document.getElementById('btn-ru').classList.remove('active');
-            document.getElementById('btn-en').classList.remove('active');
+            document.getElementById('btn-uk').className = 'ctrl-btn';
+            document.getElementById('btn-ru').className = 'ctrl-btn';
+            document.getElementById('btn-en').className = 'ctrl-btn';
             
-            document.getElementById(`btn-${lang}`).classList.add('active');
+            document.getElementById('btn-' + lang).className = 'ctrl-btn active';
 
             document.getElementById('t-title').innerText = i18n[lang].title;
             document.getElementById('t-heading').innerText = i18n[lang].heading;
+            document.getElementById('l-user').innerText = i18n[lang].labelUser;
+            document.getElementById('l-pass').innerText = i18n[lang].labelPass;
             document.getElementById('username').placeholder = i18n[lang].userPlaceholder;
             document.getElementById('t-hint').innerText = i18n[lang].userHint;
             document.getElementById('password').placeholder = i18n[lang].passPlaceholder;
@@ -307,45 +317,12 @@
             document.getElementById('error').style.display = 'none';
         }
 
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('burmalda_theme', newTheme);
-            updateThemeButton(newTheme);
-        }
-
-        function updateThemeButton(theme) {
-            const btn = document.getElementById('theme-toggle-btn');
-            btn.innerText = theme === 'dark' ? '☀️ СВІТЛА' : '🌙 ТЕМНА';
-        }
-
-        window.addEventListener('DOMContentLoaded', initPage);
-
-        // --- ЛОГІКА РАНДОМНИХ ФРАЗ ---
-        const phrases = [
-            "остап пушка дєвки ловушка",
-            "влад пушка дєвки ловушка",
-            "назар пушка дєвки ловушка"
-        ];
-        const phraseElement = document.getElementById('dynamic-phrase');
-        
-        setInterval(() => {
-            phraseElement.style.opacity = '0';
-            setTimeout(() => {
-                const randomIndex = Math.floor(Math.random() * phrases.length);
-                phraseElement.innerText = phrases[randomIndex];
-                phraseElement.style.opacity = '1';
-            }, 300); 
-        }, 5000);
-
-        // --- ЛОГІКА АВТОРИЗАЦІЇ (ПОВНІСТЮ ЗБЕРЕЖЕНО) ---
+        // --- ЛОГІКА АВТОРИЗАЦІЇ (ПОВНІСТЮ СУМІСНА З iOS 6 ВЕБ-КІТ) ---
         function enterChat() {
-            const nick = document.getElementById('username').value.trim();
-            const pass = document.getElementById('password').value.trim();
-            const errorDiv = document.getElementById('error');
-            const btn = document.getElementById('login-btn');
+            var nick = document.getElementById('username').value.trim();
+            var pass = document.getElementById('password').value.trim();
+            var errorDiv = document.getElementById('error');
+            var btn = document.getElementById('login-btn');
 
             errorDiv.style.display = 'none';
             if (!nick || !pass) {
@@ -353,15 +330,16 @@
                 return;
             }
 
-            const url = 'https://script.google.com/macros/s/AKfycbyxM2xRV-07GZmQvcConc-4nZIjO3-xpVHAA3XKOnL1qJlR5_Vpye8ySu2KfPTIOUW0/exec';
-            const originalBtnText = btn.innerText;
+            var url = 'https://script.google.com/macros/s/AKfycbyxM2xRV-07GZmQvcConc-4nZIjO3-xpVHAA3XKOnL1qJlR5_Vpye8ySu2KfPTIOUW0/exec';
+            var originalBtnText = btn.innerText;
             btn.innerText = i18n[currentLang].loading;
             btn.disabled = true;
 
             errorDiv.innerText = i18n[currentLang].checking;
-            errorDiv.style.color = "var(--text-main)";
+            errorDiv.style.color = "#385487";
             errorDiv.style.background = "transparent";
             errorDiv.style.border = "none";
+            errorDiv.style.boxShadow = "none";
             errorDiv.style.display = 'block';
 
             fetch(url, {
@@ -369,8 +347,8 @@
                 headers: { 'Content-Type': 'text/plain' }, 
                 body: JSON.stringify({ action: "login", username: nick, password: pass })
             })
-            .then(response => response.json())
-            .then(data => {
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
                 if (data.status === 'success') {
                     localStorage.removeItem('chat_logged_in');
                     localStorage.removeItem('burmalda_my_nick');
@@ -381,16 +359,16 @@
                     localStorage.setItem('chat_logged_in', 'true');
                     localStorage.setItem('burmalda_my_nick', nick);
 
-                    const loadedContacts = data.contacts ? data.contacts.split(',') : [];
-                    localStorage.setItem(`chat_list_${nick}`, JSON.stringify(loadedContacts));
-                    const loginToken = btoa(encodeURIComponent(nick) + "_" + Date.now());
+                    var loadedContacts = data.contacts ? data.contacts.split(',') : [];
+                    localStorage.setItem('chat_list_' + nick, JSON.stringify(loadedContacts));
+                    var loginToken = btoa(encodeURIComponent(nick) + "_" + Date.now());
                     window.location.href = '/chat?auth=' + loginToken;
                 } else {
                     showError(data.message || i18n[currentLang].errAuth);
                     resetButton(btn, originalBtnText);
                 }
             })
-            .catch(err => {
+            .catch(function(err) {
                 showError(i18n[currentLang].errNet);
                 console.error(err);
                 resetButton(btn, originalBtnText);
@@ -400,7 +378,8 @@
                 errorDiv.innerText = msg;
                 errorDiv.style.color = "#b91c1c";
                 errorDiv.style.background = "#fee2e2";
-                errorDiv.style.border = "2px solid #fca5a5";
+                errorDiv.style.border = "1px solid #fca5a5";
+                errorDiv.style.boxShadow = "0 1px 2px rgba(0,0,0,0.1)";
                 errorDiv.style.display = 'block';
             }
             
@@ -409,6 +388,8 @@
                 button.disabled = false;
             }
         }
+
+        initPage();
     </script>
 </body>
 </html>
