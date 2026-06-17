@@ -7,6 +7,7 @@
     <style>
         * { 
             box-sizing: border-box;
+            -webkit-box-sizing: border-box;
             margin: 0; 
             padding: 0;
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -14,35 +15,28 @@
         }
         
         body, html { 
-            height: 100vh;
-            overflow: hidden; 
-            /* Знаменитый серый льняной фон из iOS 5/6 */
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
             background-color: #cbd2d8;
-            background-image: 
-                radial-gradient(rgba(255,255,255,0.15) 15%, transparent 16%),
-                radial-gradient(rgba(255,255,255,0.15) 15%, transparent 16%),
-                radial-gradient(rgba(0,0,0,0.1) 15%, transparent 16%),
-                radial-gradient(rgba(0,0,0,0.1) 15%, transparent 16%);
+            /* Нативный точечный фон iOS 6 */
+            background-image: -webkit-gradient(radial, 50% 50%, 0, 50% 50%, 8, from(rgba(255,255,255,0.15)), to(transparent)),
+                              -webkit-gradient(radial, 50% 50%, 0, 50% 50%, 8, from(rgba(0,0,0,0.1)), to(transparent));
             background-size: 8px 8px;
-            background-position: 0 0, 4px 4px, 0 1px, 4px 5px;
-            display: flex; 
-            flex-direction: column;
-            justify-content: flex-start; 
-            align-items: center;
+            background-position: 0 0, 4px 4px;
+            text-align: center;
         }
 
         /* Нативный Navigation Bar сверху */
         .nav-bar {
             width: 100%;
             height: 44px;
-            background: linear-gradient(to bottom, #7491b4 0%, #607fa6 50%, #4b6b94 51%, #4b6b94 100%);
+            background: #607fa6;
+            background: -webkit-gradient(linear, left top, left bottom, from(#7491b4), color-stop(0.5, #607fa6), color-stop(0.51, #4b6b94), to(#4b6b94));
             border-bottom: 1px solid #2d3e52;
+            -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 3px rgba(0,0,0,0.3);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 3px rgba(0,0,0,0.3);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            z-index: 10;
         }
 
         .nav-title {
@@ -50,59 +44,65 @@
             font-size: 20px;
             font-weight: bold;
             text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+            -webkit-text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+            line-height: 44px;
             letter-spacing: -0.5px;
         }
 
         .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            flex: 1;
-            padding: 40px 15px;
-            overflow-y: auto;
-        }
-
-        /* Стиль нативного блока со скругленными краями (как группы в настройках) */
-        .ios-group {
             width: 100%;
             max-width: 320px;
+            margin: 0 auto;
+            padding: 30px 15px;
+        }
+
+        /* Таблица-контейнер для формы ввода */
+        .ios-table-group {
+            width: 100%;
             background: #ffffff;
             border: 1px solid #ababab;
             border-radius: 10px;
+            -webkit-border-radius: 10px;
+            -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             margin-bottom: 15px;
+            border-collapse: collapse;
             overflow: hidden;
         }
 
-        .ios-row {
-            display: flex;
-            align-items: center;
-            padding: 11px 12px;
-            border-bottom: 1px solid #e0e0e0;
-            position: relative;
-        }
-
-        .ios-row:last-child {
-            border-bottom: none;
-        }
-
-        .ios-label {
-            width: 95px;
+        .ios-cell-label {
+            width: 30%;
+            padding: 11px 0 11px 12px;
             font-size: 15px;
             font-weight: bold;
-            color: #385487; /* Фирменный синий цвет подписей iOS 6 */
+            color: #385487;
             text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .ios-cell-input {
+            width: 70%;
+            padding: 11px 12px 11px 5px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
+        }
+
+        tr:last-child .ios-cell-label,
+        tr:last-child .ios-cell-input {
+            border-bottom: none;
         }
         
         input { 
-            flex: 1;
+            width: 100%;
             border: none;
             background: transparent;
             color: #000000; 
             font-size: 16px; 
             outline: none;
             font-weight: normal;
+            padding: 0;
+            margin: 0;
+            display: block;
         }
 
         input::placeholder { 
@@ -111,11 +111,11 @@
         
         .hint { 
             width: 100%;
-            max-width: 300px;
             font-size: 13px;
-            color: #4c566c; /* Цвет подсказок под секциями в iOS */
+            color: #4c566c;
             text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-            margin-top: -5px; 
+            -webkit-text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+            margin-top: 5px; 
             margin-bottom: 25px; 
             text-align: center; 
             line-height: 1.4;
@@ -124,75 +124,71 @@
         /* Объемная стеклянная кнопка iOS 6 */
         .ios-btn { 
             width: 100%;
-            max-width: 320px;
             padding: 12px; 
-            background: linear-gradient(to bottom, #5ca0f9 0%, #468bf7 50%, #2671f5 51%, #1d61e1 100%);
+            background: #2671f5;
+            background: -webkit-gradient(linear, left top, left bottom, from(#5ca0f9), color-stop(0.5, #468bf7), color-stop(0.51, #2671f5), to(#1d61e1));
             border: 1px solid #1a4da6; 
             border-radius: 8px; 
+            -webkit-border-radius: 8px;
             color: #ffffff;
             cursor: pointer; 
             font-size: 17px;
             font-weight: bold; 
             text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+            -webkit-text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+            -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0,0,0,0.3);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0,0,0,0.3);
         }
 
         .ios-btn:active {
-            background: linear-gradient(to bottom, #1d61e1 0%, #2671f5 50%, #468bf7 100%);
-        }
-
-        .ios-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+            background: -webkit-gradient(linear, left top, left bottom, from(#1d61e1), color-stop(0.5, #2671f5), to(#468bf7));
         }
         
         .error-msg { 
             width: 100%;
-            max-width: 320px;
             font-size: 14px;
             margin-bottom: 15px; 
             display: none; 
             font-weight: bold; 
             padding: 10px; 
             border-radius: 8px;
+            -webkit-border-radius: 8px;
             text-align: center;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .bottom-controls {
             width: 100%;
-            max-width: 320px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            margin-top: auto;
-            padding-bottom: 20px;
+            margin-top: 40px;
+            text-align: center;
         }
 
         .control-row {
-            display: flex;
-            background: linear-gradient(to bottom, #fafafa 0%, #ededed 100%);
+            display: inline-block;
+            background: -webkit-gradient(linear, left top, left bottom, from(#fafafa), to(#ededed));
             border: 1px solid #a6a6a6;
             padding: 2px;
             border-radius: 6px;
-            box-shadow: inset 0 1px 0 #fff, 0 1px 1px rgba(0,0,0,0.1);
+            -webkit-border-radius: 6px;
         }
         
         .ctrl-btn {
+            display: inline-block;
             cursor: pointer;
             font-size: 12px;
             font-weight: bold;
             color: #555555;
             padding: 5px 14px;
             border-radius: 4px;
+            -webkit-border-radius: 4px;
             text-shadow: 0 1px 0 #fff;
+            -webkit-text-shadow: 0 1px 0 #fff;
         }
         
         .ctrl-btn.active {
-            background: linear-gradient(to bottom, #7486a6 0%, #495e85 100%);
+            background: -webkit-gradient(linear, left top, left bottom, from(#7486a6), to(#495e85));
             color: #ffffff;
             text-shadow: 0 -1px 0 rgba(0,0,0,0.4);
+            -webkit-text-shadow: 0 -1px 0 rgba(0,0,0,0.4);
             border: 1px solid #354663;
             margin: -1px;
         }
@@ -200,32 +196,41 @@
 </head>
 <body>
 
+    <!-- Нативный Навбар сверху -->
     <div class="nav-bar">
         <div class="nav-title" id="t-heading">Burmalda Login</div>
     </div>
 
     <div class="container">
         
+        <!-- Ошибка входа -->
         <div id="error" class="error-msg"></div>
 
-        <div class="ios-group">
-            <div class="ios-row">
-                <span class="ios-label" id="l-user">Login</span>
-                <input type="text" id="username" placeholder="Username..." autocomplete="off" maxlength="12">
-            </div>
-            <div class="ios-row">
-                <span class="ios-label" id="l-pass">Password</span>
-                <input type="password" id="password" placeholder="Password..." maxlength="24">
-            </div>
-        </div>
+        <!-- Форма в виде таблицы (Фикс сползания текста) -->
+        <table class="ios-table-group">
+            <tr>
+                <td class="ios-cell-label" id="l-user">Login</td>
+                <td class="ios-cell-input">
+                    <input type="text" id="username" placeholder="Username..." autocomplete="off" maxlength="12">
+                </td>
+            </tr>
+            <tr>
+                <td class="ios-cell-label" id="l-pass">Password</td>
+                <td class="ios-cell-input">
+                    <input type="password" id="password" placeholder="Password..." maxlength="24">
+                </td>
+            </tr>
+        </table>
         
         <div class="hint" id="t-hint">Maximum 12 characters (the username cannot be changed!)</div>
         
+        <!-- Кнопка отправки -->
         <button id="login-btn" class="ios-btn" onclick="enterChat()">Login / Create</button>
 
+        <!-- Выбор языка (Вместо UK теперь красуется UKR) -->
         <div class="bottom-controls">
             <div class="control-row">
-                <div class="ctrl-btn" onclick="setLang('uk')" id="btn-uk">UK</div>
+                <div class="ctrl-btn" onclick="setLang('uk')" id="btn-uk">UKR</div>
                 <div class="ctrl-btn" onclick="setLang('ru')" id="btn-ru">RU</div>
                 <div class="ctrl-btn active" onclick="setLang('en')" id="btn-en">EN</div>
             </div>
@@ -233,7 +238,6 @@
     </div>
 
     <script>
-        // --- СЛОВНИК ПЕРЕКЛАДІВ ---
         var i18n = {
             en: {
                 title: "Burmalda Messenger Login",
@@ -286,8 +290,6 @@
 
         function initPage() {
             var savedLang = localStorage.getItem('burmalda_lang');
-            
-            // По умолчанию ставим английский, если язык не сохранен вручную
             if (savedLang && i18n[savedLang]) {
                 currentLang = savedLang;
             } else {
@@ -317,7 +319,6 @@
             document.getElementById('error').style.display = 'none';
         }
 
-        // --- ЛОГІКА АВТОРИЗАЦІЇ (ПОВНІСТЮ СУМІСНА З iOS 6 ВЕБ-КІТ) ---
         function enterChat() {
             var nick = document.getElementById('username').value.trim();
             var pass = document.getElementById('password').value.trim();
@@ -339,47 +340,53 @@
             errorDiv.style.color = "#385487";
             errorDiv.style.background = "transparent";
             errorDiv.style.border = "none";
-            errorDiv.style.boxShadow = "none";
             errorDiv.style.display = 'block';
 
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' }, 
-                body: JSON.stringify({ action: "login", username: nick, password: pass })
-            })
-            .then(function(response) { return response.json(); })
-            .then(function(data) {
-                if (data.status === 'success') {
-                    localStorage.removeItem('chat_logged_in');
-                    localStorage.removeItem('burmalda_my_nick');
-                    localStorage.removeItem('current_active_chat'); 
-                    localStorage.removeItem('current_messages');    
-                    sessionStorage.clear(); 
-                    
-                    localStorage.setItem('chat_logged_in', 'true');
-                    localStorage.setItem('burmalda_my_nick', nick);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('Content-Type', 'text/plain');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            if (data.status === 'success') {
+                                localStorage.removeItem('chat_logged_in');
+                                localStorage.removeItem('burmalda_my_nick');
+                                localStorage.removeItem('current_active_chat'); 
+                                localStorage.removeItem('current_messages');    
+                                
+                                localStorage.setItem('chat_logged_in', 'true');
+                                localStorage.setItem('burmalda_my_nick', nick);
 
-                    var loadedContacts = data.contacts ? data.contacts.split(',') : [];
-                    localStorage.setItem('chat_list_' + nick, JSON.stringify(loadedContacts));
-                    var loginToken = btoa(encodeURIComponent(nick) + "_" + Date.now());
-                    window.location.href = '/chat?auth=' + loginToken;
-                } else {
-                    showError(data.message || i18n[currentLang].errAuth);
-                    resetButton(btn, originalBtnText);
+                                var loadedContacts = data.contacts ? data.contacts.split(',') : [];
+                                localStorage.setItem('chat_list_' + nick, JSON.stringify(loadedContacts));
+                                var loginToken = btoa(encodeURIComponent(nick) + "_" + Date.now());
+                                // Внутри функции входа:
+				window.location.href = '/chat.html?auth=' + loginToken;
+                            } else {
+                                showError(data.message || i18n[currentLang].errAuth);
+                                resetButton(btn, originalBtnText);
+                            }
+                        } catch(e) {
+                            showError(i18n[currentLang].errAuth);
+                            resetButton(btn, originalBtnText);
+                        }
+                    } else {
+                        showError(i18n[currentLang].errNet);
+                        resetButton(btn, originalBtnText);
+                    }
                 }
-            })
-            .catch(function(err) {
-                showError(i18n[currentLang].errNet);
-                console.error(err);
-                resetButton(btn, originalBtnText);
-            });
+            };
+            
+            xhr.send(JSON.stringify({ action: "login", username: nick, password: pass }));
 
             function showError(msg) {
                 errorDiv.innerText = msg;
                 errorDiv.style.color = "#b91c1c";
                 errorDiv.style.background = "#fee2e2";
                 errorDiv.style.border = "1px solid #fca5a5";
-                errorDiv.style.boxShadow = "0 1px 2px rgba(0,0,0,0.1)";
                 errorDiv.style.display = 'block';
             }
             
