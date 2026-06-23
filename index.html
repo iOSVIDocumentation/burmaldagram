@@ -1,264 +1,233 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title id="t-title">Burmalda Messenger Login</title>
+    <title id="t-title">Вхід у Burmalda Messenger</title>
     <style>
+        /* Максимально прості та яскраві пастельні кольори */
+        :root {
+            --bg-color: #f0fdf4; /* Світло-зелений оптимістичний фон */
+            --box-bg: #ffffff;
+            --box-border: #bbf7d0;
+            --text-main: #166534;
+            --text-muted: #666666;
+            --input-bg: #f9fafb;
+            --input-border: #cbd5e1;
+            --btn-bg: #22c55e; /* Веселий зелений колір */
+            --btn-text: #ffffff;
+            --btn-hover: #16a34a;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #064e3b; /* Глибокий зелений для темної теми */
+            --box-bg: #022c22;
+            --box-border: #047857;
+            --text-main: #f0fdf4;
+            --text-muted: #a7f3d0;
+            --input-bg: #065f46;
+            --input-border: #047857;
+            --btn-bg: #10b981;
+            --btn-text: #022c22;
+            --btn-hover: #34d399;
+        }
+
         * { 
             box-sizing: border-box;
-            -webkit-box-sizing: border-box;
             margin: 0; 
             padding: 0;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
+            font-family: sans-serif; /* Найбанальніший системний шрифт */
         }
         
         body, html { 
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            background-color: #cbd2d8;
-            /* Нативный точечный фон iOS 6 */
-            background-image: -webkit-gradient(radial, 50% 50%, 0, 50% 50%, 8, from(rgba(255,255,255,0.15)), to(transparent)),
-                              -webkit-gradient(radial, 50% 50%, 0, 50% 50%, 8, from(rgba(0,0,0,0.1)), to(transparent));
-            background-size: 8px 8px;
-            background-position: 0 0, 4px 4px;
-            text-align: center;
-        }
-
-        /* Нативный Navigation Bar сверху */
-        .nav-bar {
-            width: 100%;
-            height: 44px;
-            background: #607fa6;
-            background: -webkit-gradient(linear, left top, left bottom, from(#7491b4), color-stop(0.5, #607fa6), color-stop(0.51, #4b6b94), to(#4b6b94));
-            border-bottom: 1px solid #2d3e52;
-            -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 3px rgba(0,0,0,0.3);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 3px rgba(0,0,0,0.3);
-        }
-
-        .nav-title {
-            color: #fff;
-            font-size: 20px;
-            font-weight: bold;
-            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
-            -webkit-text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
-            line-height: 44px;
-            letter-spacing: -0.5px;
+            height: 100vh;
+            overflow: hidden; 
+            background-color: var(--bg-color);
+            color: var(--text-main); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
         }
 
         .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             width: 100%;
-            max-width: 320px;
-            margin: 0 auto;
-            padding: 30px 15px;
+            padding: 0 20px;
         }
 
-        /* Таблица-контейнер для формы ввода */
-        .ios-table-group {
+        .box { 
+            background: var(--box-bg);
+            padding: 30px 20px; 
+            border-radius: 16px; 
+            border: 3px solid var(--box-border); /* Проста жирна рамка */
+            text-align: center; 
+            display: flex;
+            flex-direction: column; 
             width: 100%;
-            background: #ffffff;
-            border: 1px solid #ababab;
-            border-radius: 10px;
-            -webkit-border-radius: 10px;
-            -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 15px;
-            border-collapse: collapse;
-            overflow: hidden;
+            max-width: 340px;
+            box-shadow: 0 8px 0 var(--box-border); /* Банальний flat-дизайн */
         }
 
-        .ios-cell-label {
-            width: 30%;
-            padding: 11px 0 11px 12px;
-            font-size: 15px;
+        .pig-boss {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--box-border);
+        }
+        
+        h2 { 
+            margin-bottom: 20px;
+            color: var(--text-main); 
+            font-size: 22px; 
             font-weight: bold;
-            color: #385487;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .ios-cell-input {
-            width: 70%;
-            padding: 11px 12px 11px 5px;
-            border-bottom: 1px solid #e0e0e0;
-            text-align: left;
-        }
-
-        tr:last-child .ios-cell-label,
-        tr:last-child .ios-cell-input {
-            border-bottom: none;
         }
         
         input { 
             width: 100%;
-            border: none;
-            background: transparent;
-            color: #000000; 
-            font-size: 16px; 
+            padding: 12px; 
+            background: var(--input-bg); 
+            border: 2px solid var(--input-border); 
+            color: var(--text-main); 
+            border-radius: 8px; 
+            margin-bottom: 6px;
+            font-size: 14px; 
             outline: none;
-            font-weight: normal;
-            padding: 0;
-            margin: 0;
-            display: block;
         }
 
         input::placeholder { 
-            color: #bcbcbc;
+            color: var(--text-muted);
+        }
+
+        input:focus { 
+            border-color: var(--btn-bg);
         }
         
         .hint { 
-            width: 100%;
-            font-size: 13px;
-            color: #4c566c;
-            text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-            -webkit-text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-            margin-top: 5px; 
-            margin-bottom: 25px; 
-            text-align: center; 
-            line-height: 1.4;
+            font-size: 11px;
+            color: var(--text-muted); 
+            margin-top: 2px; 
+            margin-bottom: 15px; 
+            text-align: left; 
+            padding-left: 2px;
+            line-height: 1.3;
         }
         
-        /* Объемная стеклянная кнопка iOS 6 */
-        .ios-btn { 
+        button { 
             width: 100%;
             padding: 12px; 
-            background: #2671f5;
-            background: -webkit-gradient(linear, left top, left bottom, from(#5ca0f9), color-stop(0.5, #468bf7), color-stop(0.51, #2671f5), to(#1d61e1));
-            border: 1px solid #1a4da6; 
+            background: var(--btn-bg);
+            color: var(--btn-text); 
+            border: none; 
             border-radius: 8px; 
-            -webkit-border-radius: 8px;
-            color: #ffffff;
             cursor: pointer; 
-            font-size: 17px;
+            font-size: 14px;
             font-weight: bold; 
-            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
-            -webkit-text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
-            -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0,0,0,0.3);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0,0,0,0.3);
+            margin-top: 5px;
         }
 
-        .ios-btn:active {
-            background: -webkit-gradient(linear, left top, left bottom, from(#1d61e1), color-stop(0.5, #2671f5), to(#468bf7));
+        button:hover { 
+            background: var(--btn-hover);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         
         .error-msg { 
-            width: 100%;
-            font-size: 14px;
-            margin-bottom: 15px; 
+            font-size: 12px;
+            margin-bottom: 12px; 
             display: none; 
             font-weight: bold; 
             padding: 10px; 
             border-radius: 8px;
-            -webkit-border-radius: 8px;
-            text-align: center;
         }
 
         .bottom-controls {
-            width: 100%;
-            margin-top: 40px;
-            text-align: center;
+            position: absolute;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
 
         .control-row {
-            display: inline-block;
-            background: -webkit-gradient(linear, left top, left bottom, from(#fafafa), to(#ededed));
-            border: 1px solid #a6a6a6;
-            padding: 2px;
-            border-radius: 6px;
-            -webkit-border-radius: 6px;
+            display: flex;
+            gap: 6px;
+            background: var(--box-bg);
+            border: 2px solid var(--box-border);
+            padding: 4px;
+            border-radius: 20px;
         }
         
         .ctrl-btn {
-            display: inline-block;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
-            color: #555555;
-            padding: 5px 14px;
-            border-radius: 4px;
-            -webkit-border-radius: 4px;
-            text-shadow: 0 1px 0 #fff;
-            -webkit-text-shadow: 0 1px 0 #fff;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 15px;
+            text-transform: uppercase;
         }
         
-        .ctrl-btn.active {
-            background: -webkit-gradient(linear, left top, left bottom, from(#7486a6), to(#495e85));
-            color: #ffffff;
-            text-shadow: 0 -1px 0 rgba(0,0,0,0.4);
-            -webkit-text-shadow: 0 -1px 0 rgba(0,0,0,0.4);
-            border: 1px solid #354663;
-            margin: -1px;
+        .ctrl-btn.active, .ctrl-btn:hover {
+            background: var(--btn-bg);
+            color: var(--btn-text);
+        }
+
+        .bottom-text {
+            font-size: 11px;
+            color: var(--text-main); 
+            font-weight: bold;
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            transition: opacity 0.3s ease;
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
-    <!-- Нативный Навбар сверху -->
-    <div class="nav-bar">
-        <div class="nav-title" id="t-heading">Burmalda Login</div>
-    </div>
-
     <div class="container">
-        
-        <!-- Ошибка входа -->
-        <div id="error" class="error-msg"></div>
-
-        <!-- Форма в виде таблицы (Фикс сползания текста) -->
-        <table class="ios-table-group">
-            <tr>
-                <td class="ios-cell-label" id="l-user">Login</td>
-                <td class="ios-cell-input">
-                    <input type="text" id="username" placeholder="Username..." autocomplete="off" maxlength="12">
-                </td>
-            </tr>
-            <tr>
-                <td class="ios-cell-label" id="l-pass">Password</td>
-                <td class="ios-cell-input">
-                    <input type="password" id="password" placeholder="Password..." maxlength="24">
-                </td>
-            </tr>
-        </table>
-        
-        <div class="hint" id="t-hint">Maximum 12 characters (the username cannot be changed!)</div>
-        
-        <!-- Кнопка отправки -->
-        <button id="login-btn" class="ios-btn" onclick="enterChat()">Login / Create</button>
-
-        <!-- Выбор языка (Вместо UK теперь красуется UKR) -->
-        <div class="bottom-controls">
-            <div class="control-row">
-                <div class="ctrl-btn" onclick="setLang('uk')" id="btn-uk">UKR</div>
-                <div class="ctrl-btn" onclick="setLang('ru')" id="btn-ru">RU</div>
-                <div class="ctrl-btn active" onclick="setLang('en')" id="btn-en">EN</div>
-            </div>
+        <div class="box">
+            <img src="photo_2026-06-16_00-59-57.jpg" class="pig-boss" alt="Pig Boss">
+            <h2 id="t-heading">Вхід Burmalda</h2>
+            
+            <input type="text" id="username" placeholder="Юзернейм..." autocomplete="off" maxlength="12">
+            <div class="hint" id="t-hint">Максимум 12 символів (змінити юзернейм неможливо!)</div>
+            
+            <input type="password" id="password" placeholder="Пароль...">
+            <div id="error" class="error-msg"></div>
+            
+            <button id="login-btn" onclick="enterChat()">Увійти / Створити</button>
         </div>
     </div>
 
+    <div class="bottom-controls">
+        <div class="control-row">
+            <div class="ctrl-btn active" onclick="setLang('uk')" id="btn-uk">UK</div>
+            <div class="ctrl-btn" onclick="setLang('ru')" id="btn-ru">RU</div>
+            <div class="ctrl-btn" onclick="setLang('en')" id="btn-en">EN</div>
+        </div>
+
+        <div class="control-row">
+            <div class="ctrl-btn" onclick="toggleTheme()" id="theme-toggle-btn">🌙 ТЕМНА</div>
+        </div>
+
+        <div class="bottom-text" id="dynamic-phrase">остап пушка дєвки ловушка</div>
+    </div>
+
     <script>
-        var i18n = {
-            en: {
-                title: "Burmalda Messenger Login",
-                heading: "Burmalda Login",
-                labelUser: "Login",
-                labelPass: "Password",
-                userPlaceholder: "Username...",
-                userHint: "Maximum 12 characters (the username cannot be changed!)",
-                passPlaceholder: "Password...",
-                btnText: "Login / Create",
-                loading: "Loading...",
-                checking: "Checking...",
-                errEmpty: "Enter nickname and password!",
-                errAuth: "Authorization error!",
-                errNet: "Network error!"
-            },
+        // --- СЛОВНИК ПЕРЕКЛАДІВ ---
+        const i18n = {
             uk: {
                 title: "Вхід у Burmalda Messenger",
                 heading: "Вхід Burmalda",
-                labelUser: "Логін",
-                labelPass: "Пароль",
                 userPlaceholder: "Юзернейм...",
                 userHint: "Максимум 12 символів (змінити юзернейм неможливо!)",
                 passPlaceholder: "Пароль...",
@@ -272,8 +241,6 @@
             ru: {
                 title: "Вход в Burmalda Messenger",
                 heading: "Вход Burmalda",
-                labelUser: "Логин",
-                labelPass: "Пароль",
                 userPlaceholder: "Юзернейм...",
                 userHint: "Максимум 12 символов (юзернейм нельзя поменять!)",
                 passPlaceholder: "Пароль...",
@@ -283,35 +250,56 @@
                 errEmpty: "Введите ник и пароль!",
                 errAuth: "Ошибка авторизации!",
                 errNet: "Ошибка сети!"
+            },
+            en: {
+                title: "Burmalda Messenger Login",
+                heading: "Burmalda Login",
+                userPlaceholder: "Username...",
+                userHint: "Maximum 12 characters (the username cannot be changed!)",
+                passPlaceholder: "Password...",
+                btnText: "Login / Create",
+                loading: "Loading...",
+                checking: "Checking...",
+                errEmpty: "Enter nickname and password!",
+                errAuth: "Authorization error!",
+                errNet: "Network error!"
             }
         };
 
-        var currentLang = 'en';
+        let currentLang = 'uk';
 
         function initPage() {
-            var savedLang = localStorage.getItem('burmalda_lang');
+            const savedLang = localStorage.getItem('burmalda_lang');
+            const userLang = navigator.language || navigator.userLanguage;
+
             if (savedLang && i18n[savedLang]) {
                 currentLang = savedLang;
-            } else {
+            } else if (userLang.toLowerCase().includes('en')) {
                 currentLang = 'en';
+            } else if (userLang.toLowerCase().includes('ru')) {
+                currentLang = 'ru';
+            } else {
+                currentLang = 'uk';
             }
             setLang(currentLang);
+
+            const savedTheme = localStorage.getItem('burmalda_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeButton(savedTheme);
         }
 
         function setLang(lang) {
             currentLang = lang;
             localStorage.setItem('burmalda_lang', lang);
 
-            document.getElementById('btn-uk').className = 'ctrl-btn';
-            document.getElementById('btn-ru').className = 'ctrl-btn';
-            document.getElementById('btn-en').className = 'ctrl-btn';
+            document.getElementById('btn-uk').classList.remove('active');
+            document.getElementById('btn-ru').classList.remove('active');
+            document.getElementById('btn-en').classList.remove('active');
             
-            document.getElementById('btn-' + lang).className = 'ctrl-btn active';
+            document.getElementById(`btn-${lang}`).classList.add('active');
 
             document.getElementById('t-title').innerText = i18n[lang].title;
             document.getElementById('t-heading').innerText = i18n[lang].heading;
-            document.getElementById('l-user').innerText = i18n[lang].labelUser;
-            document.getElementById('l-pass').innerText = i18n[lang].labelPass;
             document.getElementById('username').placeholder = i18n[lang].userPlaceholder;
             document.getElementById('t-hint').innerText = i18n[lang].userHint;
             document.getElementById('password').placeholder = i18n[lang].passPlaceholder;
@@ -319,11 +307,45 @@
             document.getElementById('error').style.display = 'none';
         }
 
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('burmalda_theme', newTheme);
+            updateThemeButton(newTheme);
+        }
+
+        function updateThemeButton(theme) {
+            const btn = document.getElementById('theme-toggle-btn');
+            btn.innerText = theme === 'dark' ? '☀️ СВІТЛА' : '🌙 ТЕМНА';
+        }
+
+        window.addEventListener('DOMContentLoaded', initPage);
+
+        // --- ЛОГІКА РАНДОМНИХ ФРАЗ ---
+        const phrases = [
+            "остап пушка дєвки ловушка",
+            "влад пушка дєвки ловушка",
+            "назар пушка дєвки ловушка"
+        ];
+        const phraseElement = document.getElementById('dynamic-phrase');
+        
+        setInterval(() => {
+            phraseElement.style.opacity = '0';
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * phrases.length);
+                phraseElement.innerText = phrases[randomIndex];
+                phraseElement.style.opacity = '1';
+            }, 300); 
+        }, 5000);
+
+        // --- ЛОГІКА АВТОРИЗАЦІЇ (ПОВНІСТЮ ЗБЕРЕЖЕНО) ---
         function enterChat() {
-            var nick = document.getElementById('username').value.trim();
-            var pass = document.getElementById('password').value.trim();
-            var errorDiv = document.getElementById('error');
-            var btn = document.getElementById('login-btn');
+            const nick = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const errorDiv = document.getElementById('error');
+            const btn = document.getElementById('login-btn');
 
             errorDiv.style.display = 'none';
             if (!nick || !pass) {
@@ -331,62 +353,54 @@
                 return;
             }
 
-            var url = 'https://script.google.com/macros/s/AKfycbyxM2xRV-07GZmQvcConc-4nZIjO3-xpVHAA3XKOnL1qJlR5_Vpye8ySu2KfPTIOUW0/exec';
-            var originalBtnText = btn.innerText;
+            const url = 'https://script.google.com/macros/s/AKfycbw5-YIlQPbTq8fI46zqdBBBUq_b5KjAQ7PY0CPCRN0tG_PLkJx4hpwhe_6iiqdWx7Gj0g/exec';
+            const originalBtnText = btn.innerText;
             btn.innerText = i18n[currentLang].loading;
             btn.disabled = true;
 
             errorDiv.innerText = i18n[currentLang].checking;
-            errorDiv.style.color = "#385487";
+            errorDiv.style.color = "var(--text-main)";
             errorDiv.style.background = "transparent";
             errorDiv.style.border = "none";
             errorDiv.style.display = 'block';
 
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', url, true);
-            xhr.setRequestHeader('Content-Type', 'text/plain');
-            
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        try {
-                            var data = JSON.parse(xhr.responseText);
-                            if (data.status === 'success') {
-                                localStorage.removeItem('chat_logged_in');
-                                localStorage.removeItem('burmalda_my_nick');
-                                localStorage.removeItem('current_active_chat'); 
-                                localStorage.removeItem('current_messages');    
-                                
-                                localStorage.setItem('chat_logged_in', 'true');
-                                localStorage.setItem('burmalda_my_nick', nick);
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' }, 
+                body: JSON.stringify({ action: "login", username: nick, password: pass })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    localStorage.removeItem('chat_logged_in');
+                    localStorage.removeItem('burmalda_my_nick');
+                    localStorage.removeItem('current_active_chat'); 
+                    localStorage.removeItem('current_messages');    
+                    sessionStorage.clear(); 
+                    
+                    localStorage.setItem('chat_logged_in', 'true');
+                    localStorage.setItem('burmalda_my_nick', nick);
 
-                                var loadedContacts = data.contacts ? data.contacts.split(',') : [];
-                                localStorage.setItem('chat_list_' + nick, JSON.stringify(loadedContacts));
-                                var loginToken = btoa(encodeURIComponent(nick) + "_" + Date.now());
-                                // Внутри функции входа:
-				window.location.href = '/chat.html?auth=' + loginToken;
-                            } else {
-                                showError(data.message || i18n[currentLang].errAuth);
-                                resetButton(btn, originalBtnText);
-                            }
-                        } catch(e) {
-                            showError(i18n[currentLang].errAuth);
-                            resetButton(btn, originalBtnText);
-                        }
-                    } else {
-                        showError(i18n[currentLang].errNet);
-                        resetButton(btn, originalBtnText);
-                    }
+                    const loadedContacts = data.contacts ? data.contacts.split(',') : [];
+                    localStorage.setItem(`chat_list_${nick}`, JSON.stringify(loadedContacts));
+                    const loginToken = btoa(encodeURIComponent(nick) + "_" + Date.now());
+                    window.location.href = '/chat?auth=' + loginToken;
+                } else {
+                    showError(data.message || i18n[currentLang].errAuth);
+                    resetButton(btn, originalBtnText);
                 }
-            };
-            
-            xhr.send(JSON.stringify({ action: "login", username: nick, password: pass }));
+            })
+            .catch(err => {
+                showError(i18n[currentLang].errNet);
+                console.error(err);
+                resetButton(btn, originalBtnText);
+            });
 
             function showError(msg) {
                 errorDiv.innerText = msg;
                 errorDiv.style.color = "#b91c1c";
                 errorDiv.style.background = "#fee2e2";
-                errorDiv.style.border = "1px solid #fca5a5";
+                errorDiv.style.border = "2px solid #fca5a5";
                 errorDiv.style.display = 'block';
             }
             
@@ -395,8 +409,6 @@
                 button.disabled = false;
             }
         }
-
-        initPage();
     </script>
 </body>
 </html>
